@@ -1,0 +1,5 @@
+<ul>
+	{% for endpoint in ["Persons", "Matters", "Indexes", "Events", "Actions", "MatterIndexes", "OfficeRecords"] %}
+		<li><a href="/{{endpoint}}">{{endpoint}}</a></li>
+	{% end %}
+</ul>

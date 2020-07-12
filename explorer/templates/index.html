@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+  	.record>tbody>tr>td, .record>tbody>tr>th {
+  border:1px solid #999;
+  padding:1px 3px;
+  font-size: 12px;
+  background-color:#fff;
+}
+.record.disabled>tbody>tr>td {
+  background-color:#f0f0f0;
+}
+.record th {
+  text-align: right;
+  vertical-align: top;
+}
+
+  </style>
+</head>
+<body>
+{% include "nav.html" %}
+<h1>Index</h1>
+{% if name %}
+	<h2>{{name}}</h2>
+	{% raw modules.RecursiveDump(data, key="root") %}
+{% end %}
+</body>
+</html>

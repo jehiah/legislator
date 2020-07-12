@@ -1,0 +1,48 @@
+{% autoescape None %}
+{% if isinstance(data, list) %}
+  <table class="record">
+    {% for i, v in enumerate(data) %}
+      <tr class="row-index-{{i}}" data-row="{{i}}" data-index-row="true"><th class="array-index">#{{i}}</th><td>{{modules.RecursiveDump(v, key=key)}}</td></tr>
+    {% end %}
+  </table>
+{% else %}
+  <table class="record {% if data.get("is_active") == False %}disabled{% end %} {% if key %}table-{{escape(key)}}{% end %}" {% if key == "root" %} id="root" {% end %}>
+  {% set fields = set(data.keys()) %}
+  {% for field in sorted(fields & guid_fields) %}
+    <tr class="row-{{escape(field)}}" data-row="{{escape(field)}}">
+      <th>{{escape(field)}}</th>
+      <td>{{data[field]}}</td>
+    </tr>
+  {% end %}
+  {% for field in sorted(fields - timestamp_fields - guid_fields) %}
+    {% if data[field] is not None %}
+    <tr class="row-{{escape(field)}}" data-row="{{escape(field)}}">
+      <th>{{escape(field)}}</th>
+      <td>
+        {% if field.endswith("Guid") %}
+          {{data[field]}}
+        {% else %}
+          {{modules.RecursiveDump(data[field], key=field)}}
+        {% end %}
+      </td>
+    </tr>
+    {% end %}
+  {% end %}
+
+  {% for field in sorted(fields & timestamp_fields) %}
+    <tr class="row-{{escape(field)}}" data-row="{{escape(field)}}">
+      <th>{{escape(field)}}</th>
+      <td>
+        {% set ts = data[field] %}
+        {% if ts > 0 %}
+          {% set dt = datetime.datetime.utcfromtimestamp(ts) %}
+          <span class="date">{{dt.strftime('%Y-%m-%d %H:%M:%S')}} UTC</span> <span class="timedelta">{{pretty_timedelta(datetime.datetime.utcnow() - dt)}}</span> <span class="ts">{{ts}}</span>
+        {% else %}
+          {{escape(str(ts))}}
+        {% end %}
+      </td>
+    </tr>
+  {% end %}
+
+  </table>
+{% end %}
