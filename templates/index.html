@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+
+  </style>
+</head>
+<body>
+
+<ul>
+{{ range .People}}
+<li>
+  <a href="/people/{{.ID}}">{{.FullName}}</a>
+</li>
+{{ end }}
+</ul>
+
+</body>
+</html>
