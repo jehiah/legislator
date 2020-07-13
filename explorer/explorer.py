@@ -19,6 +19,8 @@ class BaseHandler(tornado.web.RequestHandler):
         token = os.environ.get("NYC_LEGISLATOR_TOKEN")
         BASE="https://webapi.legistar.com/v1/nyc"
         url = BASE + "/" + path
+        if self.request.arguments:
+            url += "?" + urllib.parse.urlencode(self.request.arguments, doseq=True) #.replace("%24", "$")
         if "?" in url:
             url += "&token=" + urllib.parse.quote(token)
         else:

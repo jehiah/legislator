@@ -15,7 +15,7 @@
     </tr>
   {% end %}
   {% for field in sorted(fields - timestamp_fields - guid_fields) %}
-    {% if data[field] is not None %}
+    {% if data[field] %}
     <tr class="row-{{escape(field)}}" data-row="{{escape(field)}}">
       <th>{{escape(field)}}</th>
       <td>

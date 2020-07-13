@@ -21,5 +21,5 @@ class RecursiveDump(tornado.web.UIModule):
                                   data=data,
                                   key=key,
                                   timestamp_fields=set(['activated_ts', 'modified_ts', 'created_ts', 'deactivated_ts']),
-                                  guid_fields=set(['guid', 'PersonGuid', 'MatterGuid', 'OfficeRecordGuid', 'EventGuid', 'IndexGuid']),
+                                  guid_fields=set(['guid', 'PersonGuid', 'MatterGuid', 'OfficeRecordGuid', 'EventGuid', 'IndexGuid', 'VoteGuid']),
                                   )
