@@ -31,6 +31,21 @@ func (c Client) Person(ID int) (Person, error) {
 	return p, c.Call(fmt.Sprintf("/Persons/%d", ID), nil, &p)
 }
 
+type apiError struct {
+	code    int
+	message string
+}
+
+func (e apiError) Error() string {
+	return fmt.Sprintf("HTTP %s", e.message)
+}
+func IsNotFoundError(err error) bool {
+	if e, ok := err.(apiError); ok && e.code == http.StatusNotFound {
+		return true
+	}
+	return false
+}
+
 func (c Client) Call(endpoint string, params url.Values, data interface{}) error {
 	h := c.HttpClient
 	if h == nil {
@@ -58,7 +73,7 @@ func (c Client) Call(endpoint string, params url.Values, data interface{}) error
 	if resp.StatusCode >= 400 {
 		body, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("got %q %q for %s", resp.Status, string(body), resp.Request.URL.String())
-		return fmt.Errorf("HTTP %s", resp.StatusCode)
+		return apiError{code: resp.StatusCode, message: resp.Status}
 	}
 	return json.NewDecoder(resp.Body).Decode(&data)
 }
