@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <title>{{.Person.FullName}} Votes</title>
+  <style>
+
+  </style>
+</head>
+<body>
+
+<h1><a href="/people/{{.Person.Slug}}">{{.Person.FullName}}</a> Votes</h1>
+
+
+<table>
+<thead>
+	<tr><th>GIUD</th><th>ID</th><th>EventItemID</th><th>Vote</th><th>VoteLastModifiedUtc</th></tr>
+</thead>
+<tbody>
+{{range .Votes}}
+<tr>
+	<td>{{.GUID}}</td>
+	<td>{{.ID}}</td>
+	<td>{{.EventItemID}}</td>
+	<td>{{.ValueName}}</td>
+	<td>{{.LastModified}}</td>
+</tr>
+{{end}}
+</tbody>
+</body>
+</html>

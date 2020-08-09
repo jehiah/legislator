@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <title>{{.Person.FullName}}</title>
+  <style>
+
+  </style>
+</head>
+<body>
+
+
+<h1>{{.Person.FullName}}</h1>
+<p><a href="{{.Person.WWW}}">{{.Person.WWW}}</a></p>
+<p><code>{{.Person.Email}}</code></p>
+
+
+<a href="/people/{{.Person.Slug}}/votes">Votes</a>
+
+</body>
+</html>

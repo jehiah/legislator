@@ -2,16 +2,40 @@ package legistar
 
 // http://webapi.legistar.com/Help/ResourceModel?modelName=GranicusVote
 type Vote struct {
-	ID           string `json:"VoteId"`
+	ID           int    `json:"VoteId"`
 	GUID         string `json:"VoteGuid"`
-	PersonID     string `json:"VotePersonId"`
+	PersonID     int    `json:"VotePersonId"`
 	PersonName   string `json:"VotePersonName"`
 	EventItemID  string `json:"EventItemId"`
 	LastModified string `json:"VoteLastModifiedUtc"`
 	RowVersion   []byte `json:"VoteRowVersion"`
 
 	Result    int    `json:"VoteResult"`
-	ValueID   int    `json:"ValueId"`
-	ValueName string `json:"ValueName"` // i.e. Affirmative
+	ValueID   int    `json:"VoteValueId"`
+	ValueName string `json:"VoteValueName"` // i.e. Affirmative
 	Sort      int    `json:"VoteSort"`
+}
+
+type Votes []Vote
+
+type VoteType struct {
+	ID              int    `json:"VoteTypeId"`
+	GUID            string `json:"VoteTypeGuid"`
+	LastModifiedUtc string `json:"VoteTypeLastModifiedUtc"`
+	RowVersion      string `json:"VoteTypeRowVersion"`
+	Name            string `json:"VoteTypeName"`
+	PluralName      string `json:"VoteTypePluralName"`
+	UsedFor         int    `json:"VoteTypeUsedFor"`
+	Result          int    `json:"VoteTypeResult"`
+	Sort            int    `json:"VoteTypeSort"`
+}
+type VoteTypes []VoteType
+
+func (v VoteTypes) Find(ID int) VoteType {
+	for _, vv := range v {
+		if vv.ID == ID {
+			return vv
+		}
+	}
+	return VoteType{}
 }

@@ -1,5 +1,9 @@
 package legistar
 
+import (
+	"github.com/gosimple/slug"
+)
+
 // http://webapi.legistar.com/Help/ResourceModel?modelName=GranicusPerson
 type Person struct {
 	ID         int    `json:"PersonId"`
@@ -15,6 +19,10 @@ type Person struct {
 	// Address, City, State, Zip, Phone, Fax
 }
 
+func (p Person) Slug() string {
+	return slug.MakeLang(p.FullName, "en")
+}
+
 type Persons []Person
 
 // Filter to active persons
@@ -26,4 +34,11 @@ func (pp Persons) Active() Persons {
 		}
 	}
 	return o
+}
+func (pp Persons) Lookup() map[string]Person {
+	m := make(map[string]Person, len(pp))
+	for _, p := range pp {
+		m[p.Slug()] = p
+	}
+	return m
 }

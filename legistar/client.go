@@ -30,6 +30,17 @@ func (c Client) Person(ID int) (Person, error) {
 	var p Person
 	return p, c.Call(fmt.Sprintf("/Persons/%d", ID), nil, &p)
 }
+func (c Client) PersonVotes(ID int) (Votes, error) {
+	var v Votes
+	return v, c.Call(fmt.Sprintf("/Persons/%d/Votes", ID), nil, &v)
+}
+
+// VoteTypes
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-VoteTypes
+func (c Client) VoteTypes() (VoteTypes, error) {
+	var v VoteTypes
+	return v, c.Call("/VoteTypes", nil, &v)
+}
 
 type apiError struct {
 	code    int

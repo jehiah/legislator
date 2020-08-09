@@ -2,13 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 
 	"github.com/gorilla/handlers"
 	"github.com/jehiah/legislator/legistar"
@@ -18,23 +16,39 @@ import (
 type App struct {
 	legistar  *legistar.Client
 	templates *template.Template
+
+	people       legistar.Persons
+	peopleBySlug map[string]legistar.Person
+	voteTypes    legistar.VoteTypes
+}
+
+func NewApp(client *legistar.Client, t *template.Template) *App {
+	people, err := client.Persons()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("loaded %d people", len(people))
+	sort.Slice(people, func(i, j int) bool { return people[i].FullName < people[j].FullName })
+	voteTypes, err := client.VoteTypes()
+	log.Printf("loaded %d vote types", len(voteTypes))
+	if err != nil {
+		panic(err)
+	}
+
+	return &App{
+		legistar:     client,
+		templates:    t,
+		people:       people,
+		peopleBySlug: people.Active().Lookup(),
+		voteTypes:    voteTypes,
+	}
 }
 
 func (a *App) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	people, err := a.legistar.Persons()
-	if err != nil {
-		log.Printf("%s", err)
-		http.Error(w, "Unknown Error", 500)
-		return
-	}
-
-	people = people.Active()
-	sort.Slice(people, func(i, j int) bool { return people[i].FullName < people[j].FullName })
-
-	err = a.templates.ExecuteTemplate(w, "index.html", struct {
+	err := a.templates.ExecuteTemplate(w, "index.html", struct {
 		People legistar.Persons
 	}{
-		People: people,
+		People: a.people.Active(),
 	})
 	if err != nil {
 		log.Printf("%s", err)
@@ -42,13 +56,30 @@ func (a *App) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 }
 
 func (a *App) Person(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id, err := strconv.Atoi(ps.ByName("person_id"))
-	if err != nil || id < 1 {
-		http.Error(w, "Invalid Person ID", 400)
+	p, ok := a.peopleBySlug[ps.ByName("person_slug")]
+	if !ok {
+		http.Error(w, "Person not found", 400)
 		return
 	}
 
-	p, err := a.legistar.Person(id)
+	err := a.templates.ExecuteTemplate(w, "person.html", struct {
+		Person legistar.Person
+	}{
+		Person: p,
+	})
+	if err != nil {
+		log.Printf("%s", err)
+	}
+}
+
+func (a *App) PersonVotes(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	p, ok := a.peopleBySlug[ps.ByName("person_slug")]
+	if !ok {
+		http.Error(w, "Person not found", 400)
+		return
+	}
+
+	v, err := a.legistar.PersonVotes(p.ID)
 	if err != nil {
 		if legistar.IsNotFoundError(err) {
 			http.Error(w, "Not Found", 404)
@@ -59,23 +90,30 @@ func (a *App) Person(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		return
 	}
 
-	fmt.Fprintf(w, "hello, %#v!\n", p)
+	err = a.templates.ExecuteTemplate(w, "person_votes.html", struct {
+		Person legistar.Person
+		Votes  legistar.Votes
+	}{
+		Person: p,
+		Votes:  v,
+	})
+	if err != nil {
+		log.Printf("%s", err)
+	}
 }
 
 func main() {
 	listen := flag.String("address", "0.0.0.0:7002", "address to listen on")
 	templatePath := flag.String("templates", "templates", "path to templates")
 	flag.Parse()
-	app := &App{
-		templates: compileTemplates(*templatePath),
-		legistar: &legistar.Client{
-			Client: "nyc",
-			Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
-		},
-	}
+	app := NewApp(&legistar.Client{
+		Client: "nyc",
+		Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
+	}, compileTemplates(*templatePath))
 	router := httprouter.New()
 	router.GET("/", app.Index)
-	router.GET("/people/:person_id", app.Person)
+	router.GET("/people/:person_slug", app.Person)
+	router.GET("/people/:person_slug/votes", app.PersonVotes)
 	log.Printf("listening on %s", *listen)
 	http.ListenAndServe(*listen, handlers.LoggingHandler(os.Stdout, router))
 }
