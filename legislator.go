@@ -62,10 +62,19 @@ func (a *App) Person(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		return
 	}
 
-	err := a.templates.ExecuteTemplate(w, "person.html", struct {
-		Person legistar.Person
+	officeRecords, err := a.legistar.PersonOfficeRecords(p.ID)
+	if err != nil {
+		log.Printf("%s", err)
+		http.Error(w, "Unknown Error", 500)
+		return
+	}
+
+	err = a.templates.ExecuteTemplate(w, "person.html", struct {
+		Person        legistar.Person
+		OfficeRecords legistar.OfficeRecords
 	}{
-		Person: p,
+		Person:        p,
+		OfficeRecords: officeRecords,
 	})
 	if err != nil {
 		log.Printf("%s", err)

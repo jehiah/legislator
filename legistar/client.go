@@ -31,8 +31,13 @@ func (c Client) Person(ID int) (Person, error) {
 	return p, c.Call(fmt.Sprintf("/Persons/%d", ID), nil, &p)
 }
 func (c Client) PersonVotes(ID int) (Votes, error) {
+	// TODO: page
 	var v Votes
 	return v, c.Call(fmt.Sprintf("/Persons/%d/Votes", ID), nil, &v)
+}
+func (c Client) PersonOfficeRecords(ID int) (OfficeRecords, error) {
+	var v OfficeRecords
+	return v, c.Call(fmt.Sprintf("/Persons/%d/OfficeRecords", ID), nil, &v)
 }
 
 // VoteTypes

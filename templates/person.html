@@ -17,5 +17,19 @@
 
 <a href="/people/{{.Person.Slug}}/votes">Votes</a>
 
+<table>
+<thead><tr><th>Office</th><th>Position</th><th>From</th><th>Until</th></tr></thead>
+<tbody>
+{{range .OfficeRecords}}
+<tr>
+	<td>{{.BodyName}}</td>
+	<td>{{.Title}}</td>
+	<td>{{.StartDate.Format "Jan 2006"}}</td>
+	<td>{{ if not .EndDate.IsZero }}{{.EndDate.Format "Jan 2006"}}{{end}}</td>
+</tr>
+{{end}}
+</tbody>
+</table>
+
 </body>
 </html>

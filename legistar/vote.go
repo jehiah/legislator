@@ -7,7 +7,7 @@ type Vote struct {
 	PersonID     int    `json:"VotePersonId"`
 	PersonName   string `json:"VotePersonName"`
 	EventItemID  string `json:"EventItemId"`
-	LastModified string `json:"VoteLastModifiedUtc"`
+	LastModified Time   `json:"VoteLastModifiedUtc"`
 	RowVersion   []byte `json:"VoteRowVersion"`
 
 	Result    int    `json:"VoteResult"`
@@ -19,15 +19,15 @@ type Vote struct {
 type Votes []Vote
 
 type VoteType struct {
-	ID              int    `json:"VoteTypeId"`
-	GUID            string `json:"VoteTypeGuid"`
-	LastModifiedUtc string `json:"VoteTypeLastModifiedUtc"`
-	RowVersion      string `json:"VoteTypeRowVersion"`
-	Name            string `json:"VoteTypeName"`
-	PluralName      string `json:"VoteTypePluralName"`
-	UsedFor         int    `json:"VoteTypeUsedFor"`
-	Result          int    `json:"VoteTypeResult"`
-	Sort            int    `json:"VoteTypeSort"`
+	ID           int    `json:"VoteTypeId"`
+	GUID         string `json:"VoteTypeGuid"`
+	LastModified Time   `json:"VoteTypeLastModifiedUtc"`
+	RowVersion   string `json:"VoteTypeRowVersion"`
+	Name         string `json:"VoteTypeName"`
+	PluralName   string `json:"VoteTypePluralName"`
+	UsedFor      int    `json:"VoteTypeUsedFor"`
+	Result       int    `json:"VoteTypeResult"`
+	Sort         int    `json:"VoteTypeSort"`
 }
 type VoteTypes []VoteType
 
