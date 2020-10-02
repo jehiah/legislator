@@ -47,6 +47,16 @@ func (c Client) VoteTypes() (VoteTypes, error) {
 	return v, c.Call("/VoteTypes", nil, &v)
 }
 
+func (c Client) MatterTypes() (MatterTypes, error) {
+	var v MatterTypes
+	return v, c.Call("/MatterTypes", nil, &v)
+}
+
+func (c Client) MatterIndexes() (MatterIndexes, error) {
+	var v MatterIndexes
+	return v, c.Call("/MatterIndexes", nil, &v)
+}
+
 type apiError struct {
 	code    int
 	message string

@@ -7,13 +7,22 @@ http://webapi.legistar.com/Help
 
 
 curl "https://webapi.legistar.com/v1/nyc/matters?token=${NYC_LEGISLATOR_TOKEN}&\$top=2&\$filter=MatterIntroDate+ge+datetime'2020-06-01'" > output.json
+http://127.0.0.1:7001/Matters?$filter=MatterIntroDate+ge+datetime%272020-01-01%27
 
 
 
 GET v1/{Client}/Persons	
 GET v1/{Client}/Matters	
+	http://127.0.0.1:7001/Matters?$filter=MatterIntroDate+ge+datetime%272020-01-01%27
 GET v1/{Client}/Matters/{MatterId}/Sponsors	
-GET v1/{Client}/Matters/{MatterId}/Relations	
+	http://127.0.0.1:7001/Matters/52409/Sponsors
+	http://127.0.0.1:7001/Matters/65667/Sponsors
+	
+GET v1/{Client}/Matters/{MatterId}/Relations
+GET v1/{Client}/Matters/{MatterId}/Histories?AgendaNote={AgendaNote}&MinutesNote={MinutesNote}	
+	http://127.0.0.1:7001/Matters/52409/Histories
+	http://127.0.0.1:7001/Matters/66050/Histories
+
 
 GET v1/{Client}/Indexes	
 GET v1/{Client}/Indexes/{IndexId}	

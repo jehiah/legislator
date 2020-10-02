@@ -6,7 +6,7 @@ type Vote struct {
 	GUID         string `json:"VoteGuid"`
 	PersonID     int    `json:"VotePersonId"`
 	PersonName   string `json:"VotePersonName"`
-	EventItemID  string `json:"EventItemId"`
+	EventItemID  int    `json:"VoteEventItemId"`
 	LastModified Time   `json:"VoteLastModifiedUtc"`
 	RowVersion   []byte `json:"VoteRowVersion"`
 
