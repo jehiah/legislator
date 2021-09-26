@@ -2,7 +2,7 @@ package legistar
 
 import "time"
 
-const iso8601 = "2006-01-02T15:04:05"
+const iso8601 = "2006-01-02T15:04:05.999999999"
 
 type Time struct {
 	time.Time

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const apiBase = "https://webapi.legistar.com/v1/"
@@ -26,10 +27,26 @@ type Client struct {
 	HttpClient *http.Client
 }
 
+type Filters interface {
+	Paramters() url.Values
+}
+
+func dateTimeFilter(field string, t time.Time) url.Values {
+	if t.IsZero() {
+		return url.Values{}
+	}
+	v := fmt.Sprintf("%s gt datetime'%s'", field, t.Format("2006-01-02T15:04:05.999999999"))
+	return url.Values{"$filter": []string{v}}
+}
+
 // Return all Persons
-func (c Client) Persons() (Persons, error) {
+func (c Client) Persons(f Filters) (Persons, error) {
 	var data Persons
-	return data, c.Call("/Persons", nil, &data)
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	return data, c.Call("/Persons", p, &data)
 }
 
 func (c Client) Person(ID int) (Person, error) {
@@ -44,6 +61,15 @@ func (c Client) PersonVotes(ID int) (Votes, error) {
 func (c Client) PersonOfficeRecords(ID int) (OfficeRecords, error) {
 	var v OfficeRecords
 	return v, c.Call(fmt.Sprintf("/Persons/%d/OfficeRecords", ID), nil, &v)
+}
+
+func (c Client) OfficeRecords(f Filters) (OfficeRecords, error) {
+	var v OfficeRecords
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	return v, c.Call("/OfficeRecords", p, &v)
 }
 
 // VoteTypes
@@ -93,6 +119,7 @@ func (c Client) Call(endpoint string, params url.Values, data interface{}) error
 	} else {
 		u += "?" + params.Encode()
 	}
+	log.Printf("GET %s", u)
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
 		return err

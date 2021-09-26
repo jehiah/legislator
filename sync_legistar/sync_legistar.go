@@ -35,8 +35,35 @@ func (s *SyncApp) Load() error {
 }
 
 func (s *SyncApp) Run() error {
+	os.MkdirAll(s.targetDir, 0777)
+	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
+	s.LastRun = time.Now().UTC().Truncate(time.Second)
+	err := s.SyncPersons()
+	if err != nil {
+		return err
+	}
 	return nil
 }
+
+func (s SyncApp) writeFile(fn string, o interface{}) error {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return err
+	}
+	fn = filepath.Join(s.targetDir, fn)
+	log.Printf("creating %s", fn)
+	f, err := os.Create(fn)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.Write(b)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
+
 func (s SyncApp) Save() error {
 	fn := filepath.Join(s.targetDir, "last_sync.json")
 	f, err := os.Create(fn)
@@ -54,7 +81,7 @@ func (s SyncApp) Save() error {
 
 type LastSync struct {
 	// Matter time.Time
-	People time.Time
+	Persons time.Time
 
 	LastRun time.Time
 }
@@ -73,7 +100,6 @@ func main() {
 		},
 		targetDir: *targetDir,
 	}
-	os.MkdirAll(*targetDir, 0777)
 	if err := s.Load(); err != nil {
 		log.Fatal(err)
 	}

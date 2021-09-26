@@ -22,7 +22,7 @@ GET v1/{Client}/Matters
 	http://127.0.0.1:7001/Matters?$filter=MatterIntroDate+ge+datetime%272020-01-01%27+and+MatterTypeName+eq+%27Introduction%27
 	// query by MatterLastModifiedUtc to keep updated
 	// MatterEXText9 -> Intro'd by "last name"  ( use sponsors index 0)
-	// MatterEXText10 -> Status
+	// MatterEXText10; MatterStatusName -> Status
 	// MatterEXText5 -> Summary
 	http://127.0.0.1:7001/Matters/66477
 
@@ -30,7 +30,6 @@ GET v1/{Client}/Matters/{MatterId}/Sponsors
 	http://127.0.0.1:7001/Matters/52409/Sponsors
 	http://127.0.0.1:7001/Matters/65667/Sponsors
 	http://127.0.0.1:7001/Matters/66477/Sponsors
-
 
 	MatterSponsorSequence=null is the first sponsor; MatterSponsorSequence starts at 1 after that
 

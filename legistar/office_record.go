@@ -1,5 +1,10 @@
 package legistar
 
+import (
+	"net/url"
+	"time"
+)
+
 type OfficeRecord struct {
 	ID              int     `json:"OfficeRecordId"`
 	GUID            string  `json:"OfficeRecordGuid"`
@@ -25,3 +30,9 @@ type OfficeRecord struct {
 }
 
 type OfficeRecords []OfficeRecord
+
+type OfficeRecordLastModifiedFilter time.Time
+
+func (f OfficeRecordLastModifiedFilter) Paramters() url.Values {
+	return dateTimeFilter("OfficeRecordLastModifiedUtc", time.Time(f))
+}

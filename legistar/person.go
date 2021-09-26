@@ -1,6 +1,9 @@
 package legistar
 
 import (
+	"net/url"
+	"time"
+
 	"github.com/gosimple/slug"
 )
 
@@ -17,6 +20,12 @@ type Person struct {
 	WWW          string `json:"PersonWWW"`
 
 	// Address, City, State, Zip, Phone, Fax
+}
+
+type PersonLastModifiedFilter time.Time
+
+func (p PersonLastModifiedFilter) Paramters() url.Values {
+	return dateTimeFilter("PersonLastModifiedUtc", time.Time(p))
 }
 
 func (p Person) Slug() string {
