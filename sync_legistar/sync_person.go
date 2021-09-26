@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -31,13 +33,38 @@ func (s *SyncApp) SyncPersons() error {
 		slugs[p.Slug()] = true
 
 		record := db.NewPerson(p, officeRecords)
+		s.personLookup[record.ID] = record
 
 		if err := s.writeFile(filepath.Join("people", record.Slug+".json"), record); err != nil {
 			return err
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	s.LastSync.Persons = db.Max(persons, func(i int) time.Time { return persons[i].LastModified.Time })
+	if len(persons) > 0 {
+		s.LastSync.Persons = db.Max(persons, func(i int) time.Time { return persons[i].LastModified.Time })
+	}
 
 	return err
+}
+
+func (s *SyncApp) LoadPersons() error {
+	// load persons
+	files, err := filepath.Glob(filepath.Join(s.targetDir, "people", "*.json"))
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		b, err := os.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		var p db.Person
+		err = json.Unmarshal(b, &p)
+		if err != nil {
+			return err
+		}
+		s.personLookup[p.ID] = p
+	}
+	log.Printf("loaded %d people", len(s.personLookup))
+	return nil
 }

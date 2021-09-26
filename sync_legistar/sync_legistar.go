@@ -8,12 +8,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/jehiah/legislator/db"
 	"github.com/jehiah/legislator/legistar"
 )
 
 type SyncApp struct {
 	legistar  *legistar.Client
 	targetDir string
+
+	personLookup map[int]db.Person
 
 	LastSync
 }
@@ -31,7 +34,15 @@ func (s *SyncApp) Load() error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(b, &s.LastSync)
+	err = json.Unmarshal(b, &s.LastSync)
+	if err != nil {
+		return err
+	}
+	err = s.LoadPersons()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SyncApp) Run() error {
@@ -98,7 +109,8 @@ func main() {
 			Client: "nyc",
 			Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
 		},
-		targetDir: *targetDir,
+		personLookup: make(map[int]db.Person),
+		targetDir:    *targetDir,
 	}
 	if err := s.Load(); err != nil {
 		log.Fatal(err)

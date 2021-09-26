@@ -6,6 +6,12 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
+type PersonReference struct {
+	ID       int
+	Slug     string
+	FullName string
+}
+
 type Person struct {
 	ID                  int
 	GUID                string
@@ -18,6 +24,14 @@ type Person struct {
 	LastModified        time.Time
 	OfficeRecords       []OfficeRecord
 	Start, End          time.Time
+}
+
+func (p Person) Reference() PersonReference {
+	return PersonReference{
+		ID:       p.ID,
+		Slug:     p.Slug,
+		FullName: p.FullName,
+	}
 }
 
 type OfficeRecord struct {

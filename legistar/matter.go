@@ -77,6 +77,7 @@ type MatterSponsor struct {
 	Sequence      int    `json:"MatterSponsorSequence"`
 	LinkFlag      int    `json:"MatterSponsorLinkFlag"`
 }
+type MatterSponsors []MatterSponsor
 
 // MatterType
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-MatterTypes
