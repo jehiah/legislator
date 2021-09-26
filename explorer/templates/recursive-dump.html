@@ -34,7 +34,7 @@
       <th>{{escape(field)}}</th>
       <td>
         {% set ts = data[field] %}
-        {% if ts > 0 %}
+        {% if isinstance(ts, int) and ts > 0 %}
           {% set dt = datetime.datetime.utcfromtimestamp(ts) %}
           <span class="date">{{dt.strftime('%Y-%m-%d %H:%M:%S')}} UTC</span> <span class="timedelta">{{pretty_timedelta(datetime.datetime.utcnow() - dt)}}</span> <span class="ts">{{ts}}</span>
         {% else %}

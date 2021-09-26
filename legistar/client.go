@@ -13,6 +13,12 @@ import (
 
 const apiBase = "https://webapi.legistar.com/v1/"
 
+type Filter struct {
+	Skip   int    // $skip
+	Filter string // $filter
+	Top    int    // $top=n (like limit?)
+}
+
 type Client struct {
 	Client string // i.e. Client in http://webapi.legistar.com/v1/{Client}
 
