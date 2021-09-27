@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -14,10 +12,18 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-type IntroDateYearFilter int
+type IntroDateYearFilter struct {
+	t  time.Time
+	eq string
+}
 
 func (y IntroDateYearFilter) Paramters() url.Values {
-	return legistar.DateTimeFilter("MatterIntroDate", time.Date(int(y), time.January, 1, 0, 0, 0, 0, time.UTC))
+	return legistar.DateTimeFilter("MatterIntroDate", y.eq, y.t)
+}
+
+func LegislationFilename(m db.Legislation) string {
+	fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
+	return filepath.Join("introduction", strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
 func (s *SyncApp) SyncMatter() error {
@@ -25,7 +31,8 @@ func (s *SyncApp) SyncMatter() error {
 	filter := legistar.AndFilters(
 		legistar.MatterLastModifiedFilter(s.LastSync.Matters),
 		legistar.MatterTypeFilter("Introduction"),
-		IntroDateYearFilter(2020),
+		// IntroDateYearFilter{time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
+		IntroDateYearFilter{time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
 	)
 
 	matters, err := s.legistar.Matters(filter)
@@ -34,12 +41,18 @@ func (s *SyncApp) SyncMatter() error {
 	}
 
 	for _, m := range matters {
+
+		l := db.NewLegislation(m)
+		fn := LegislationFilename(l)
+		if s.legislationLookup[fn] {
+			continue
+		}
+		s.legislationLookup[fn] = true
+
 		sponsors, err := s.legistar.MatterSponsors(m.ID)
 		if err != nil {
 			return err
 		}
-
-		l := db.NewLegislation(m)
 		for _, p := range sponsors {
 			if p.MatterVersion != m.Version {
 				continue
@@ -56,8 +69,7 @@ func (s *SyncApp) SyncMatter() error {
 		l.Text = txt.Plain
 		l.RTF = txt.RTF
 
-		fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
-		if err = s.writeFile(filepath.Join("introduction", strconv.Itoa(m.IntroDate.Year()), fn), l); err != nil {
+		if err = s.writeFile(fn, l); err != nil {
 			return err
 		}
 		time.Sleep(250 * time.Millisecond)
@@ -70,23 +82,13 @@ func (s *SyncApp) SyncMatter() error {
 }
 
 func (s *SyncApp) LoadMatter() error {
-	// load persons
-	files, err := filepath.Glob(filepath.Join(s.targetDir, "people", "*.json"))
+	files, err := filepath.Glob(filepath.Join(s.targetDir, "introduction", "*", "*.json"))
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		b, err := os.ReadFile(file)
-		if err != nil {
-			return err
-		}
-		var p db.Person
-		err = json.Unmarshal(b, &p)
-		if err != nil {
-			return err
-		}
-		s.personLookup[p.ID] = p
+		s.legislationLookup[strings.TrimPrefix(file, s.targetDir+"/")] = true
 	}
-	log.Printf("loaded %d people", len(s.personLookup))
+	log.Printf("loaded %d legislation files", len(s.legislationLookup))
 	return nil
 }

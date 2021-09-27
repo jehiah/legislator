@@ -11,11 +11,11 @@ type Filters interface {
 	Paramters() url.Values
 }
 
-func DateTimeFilter(field string, t time.Time) url.Values {
+func DateTimeFilter(field, eq string, t time.Time) url.Values {
 	if t.IsZero() {
 		return url.Values{}
 	}
-	v := fmt.Sprintf("%s gt datetime'%s'", field, t.Format("2006-01-02T15:04:05.999999999"))
+	v := fmt.Sprintf("%s %s datetime'%s'", field, eq, t.Format("2006-01-02T15:04:05.999999999"))
 	return url.Values{"$filter": []string{v}}
 }
 

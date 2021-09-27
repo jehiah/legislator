@@ -16,7 +16,8 @@ type SyncApp struct {
 	legistar  *legistar.Client
 	targetDir string
 
-	personLookup map[int]db.Person
+	personLookup      map[int]db.Person
+	legislationLookup map[string]bool
 
 	LastSync
 }
@@ -46,6 +47,10 @@ func (s *SyncApp) Load() error {
 		return err
 	}
 	err = s.LoadPersons()
+	if err != nil {
+		return err
+	}
+	err = s.LoadMatter()
 	if err != nil {
 		return err
 	}
@@ -118,8 +123,9 @@ func main() {
 			Client: "nyc",
 			Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
 		},
-		personLookup: make(map[int]db.Person),
-		targetDir:    *targetDir,
+		personLookup:      make(map[int]db.Person),
+		legislationLookup: make(map[string]bool),
+		targetDir:         *targetDir,
 	}
 	if err := s.Load(); err != nil {
 		log.Fatal(err)

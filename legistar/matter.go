@@ -73,7 +73,7 @@ type Matters []Matter
 type MatterLastModifiedFilter time.Time
 
 func (p MatterLastModifiedFilter) Paramters() url.Values {
-	return DateTimeFilter("MatterLastModifiedUtc", time.Time(p))
+	return DateTimeFilter("MatterLastModifiedUtc", "gt", time.Time(p))
 }
 
 type MatterTypeFilter string
