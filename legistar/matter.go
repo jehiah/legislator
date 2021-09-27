@@ -1,5 +1,11 @@
 package legistar
 
+import (
+	"net/url"
+	"strconv"
+	"time"
+)
+
 // Matter
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-Matters
 type Matter struct {
@@ -62,6 +68,20 @@ type Matter struct {
 	} `json:"MatterReports"`
 }
 
+type Matters []Matter
+
+type MatterLastModifiedFilter time.Time
+
+func (p MatterLastModifiedFilter) Paramters() url.Values {
+	return DateTimeFilter("MatterLastModifiedUtc", time.Time(p))
+}
+
+type MatterTypeFilter string
+
+func (p MatterTypeFilter) Paramters() url.Values {
+	return StringFilter("MatterTypeName", string(p))
+}
+
 // MatterSponsor
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-Matters-MatterId-Sponsors
 type MatterSponsor struct {
@@ -71,10 +91,10 @@ type MatterSponsor struct {
 	RowVersion    string `json:"MatterSponsorRowVersion"`
 	MatterID      int    `json:"MatterSponsorMatterId"`
 	MatterVersion string `json:"MatterSponsorMatterVersion"`
-	NameID        int    `json:"MatterSponsorNameId"`
-	BodyID        int    `json:"MatterSponsorBodyId"`
 	Name          string `json:"MatterSponsorName"`
+	NameID        int    `json:"MatterSponsorNameId"`
 	Sequence      int    `json:"MatterSponsorSequence"`
+	BodyID        int    `json:"MatterSponsorBodyId"`
 	LinkFlag      int    `json:"MatterSponsorLinkFlag"`
 }
 type MatterSponsors []MatterSponsor
@@ -106,3 +126,33 @@ type MatterIndex struct {
 	Name         string `json:"MatterIndexName"`
 }
 type MatterIndexes []MatterIndex
+
+// MatterText
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-Matters-MatterId-Texts-MatterTextId
+type MatterText struct {
+	ID           int    `json:"MatterTextId"`
+	GUID         string `json:"MatterTextGuid"`
+	LastModified Time   `json:"MatterTextLastModifiedUtc"`
+	RowVersion   string `json:"MatterTextRowVersion"`
+	MatterID     int    `json:"MatterTextMatterId"`
+	Version      string `json:"MatterTextVersion"`
+	Plain        string `json:"MatterTextPlain"`
+	RTF          string `json:"MatterTextRtf"`
+}
+
+// MatterTextVersion
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-Matters-MatterId-Versions
+type MatterTextVersion struct {
+	TextID  string `json:"Key"`
+	Version string `json:"Value"`
+}
+type MatterTextVersions []MatterTextVersion
+
+func (m MatterTextVersions) LatestTextID() int {
+	if len(m) == 0 {
+		return 0
+	}
+	// TODO: is this the right order
+	n, _ := strconv.Atoi(m[len(m)-1].TextID)
+	return n
+}

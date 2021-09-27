@@ -21,6 +21,13 @@ type SyncApp struct {
 	LastSync
 }
 
+type LastSync struct {
+	Matters time.Time
+	Persons time.Time
+
+	LastRun time.Time
+}
+
 func (s *SyncApp) Load() error {
 	fn := filepath.Join(s.targetDir, "last_sync.json")
 	_, err := os.Stat(fn)
@@ -48,8 +55,13 @@ func (s *SyncApp) Load() error {
 func (s *SyncApp) Run() error {
 	os.MkdirAll(s.targetDir, 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
+	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
 	s.LastRun = time.Now().UTC().Truncate(time.Second)
 	err := s.SyncPersons()
+	if err != nil {
+		return err
+	}
+	err = s.SyncMatter()
 	if err != nil {
 		return err
 	}
@@ -57,11 +69,15 @@ func (s *SyncApp) Run() error {
 }
 
 func (s SyncApp) writeFile(fn string, o interface{}) error {
+	fn = filepath.Join(s.targetDir, fn)
+	err := os.MkdirAll(filepath.Dir(fn), 0777)
+	if err != nil {
+		return err
+	}
 	b, err := json.Marshal(o)
 	if err != nil {
 		return err
 	}
-	fn = filepath.Join(s.targetDir, fn)
 	log.Printf("creating %s", fn)
 	f, err := os.Create(fn)
 	if err != nil {
@@ -88,13 +104,6 @@ func (s SyncApp) Save() error {
 	}
 	f.Write(b)
 	return f.Close()
-}
-
-type LastSync struct {
-	// Matter time.Time
-	Persons time.Time
-
-	LastRun time.Time
 }
 
 func main() {

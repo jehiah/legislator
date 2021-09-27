@@ -3,16 +3,20 @@ package legistar
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"runtime"
+	"sort"
 	"strings"
-	"time"
 )
 
 const apiBase = "https://webapi.legistar.com/v1/"
+
+var userAgent = fmt.Sprintf("Go-http-client/%s (https://github.com/jehiah/legislator)", strings.TrimPrefix(runtime.Version(), "go"))
 
 type Filter struct {
 	Skip   int    // $skip
@@ -25,18 +29,6 @@ type Client struct {
 
 	Token      string
 	HttpClient *http.Client
-}
-
-type Filters interface {
-	Paramters() url.Values
-}
-
-func dateTimeFilter(field string, t time.Time) url.Values {
-	if t.IsZero() {
-		return url.Values{}
-	}
-	v := fmt.Sprintf("%s gt datetime'%s'", field, t.Format("2006-01-02T15:04:05.999999999"))
-	return url.Values{"$filter": []string{v}}
 }
 
 // Return all Persons
@@ -70,6 +62,35 @@ func (c Client) OfficeRecords(f Filters) (OfficeRecords, error) {
 		p = f.Paramters()
 	}
 	return v, c.Call("/OfficeRecords", p, &v)
+}
+
+func (c Client) Matters(f Filters) (Matters, error) {
+	var v Matters
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	return v, c.Call("/Matters", p, &v)
+}
+
+func (c Client) MatterSponsors(ID int) (MatterSponsors, error) {
+	var v MatterSponsors
+	err := c.Call(fmt.Sprintf("/Matters/%d/Sponsors", ID), nil, &v)
+	sort.Slice(v, func(i, j int) bool { return v[i].Sequence < v[j].Sequence })
+	return v, err
+}
+
+func (c Client) MatterText(matterID, textID int) (MatterText, error) {
+	var v MatterText
+	if textID == 0 {
+		return v, errors.New("got textID 0")
+	}
+	return v, c.Call(fmt.Sprintf("/Matters/%d/Texts/%d", matterID, textID), nil, &v)
+}
+
+func (c Client) MatterTextVersions(matterID int) (MatterTextVersions, error) {
+	var v MatterTextVersions
+	return v, c.Call(fmt.Sprintf("/Matters/%d/Versions", matterID), nil, &v)
 }
 
 // VoteTypes
@@ -124,6 +145,7 @@ func (c Client) Call(endpoint string, params url.Values, data interface{}) error
 	if err != nil {
 		return err
 	}
+	req.Header.Set("User-Agent", userAgent)
 	resp, err := h.Do(req)
 	if err != nil {
 		return err

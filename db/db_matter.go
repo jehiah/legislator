@@ -29,7 +29,9 @@ type Legislation struct {
 
 	Summary string // MatterEXText5
 
-	Text string // current Version
+	TextID int
+	Text   string // current version
+	RTF    string // current version
 
 	LastModified time.Time
 }

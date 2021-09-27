@@ -34,5 +34,5 @@ type OfficeRecords []OfficeRecord
 type OfficeRecordLastModifiedFilter time.Time
 
 func (f OfficeRecordLastModifiedFilter) Paramters() url.Values {
-	return dateTimeFilter("OfficeRecordLastModifiedUtc", time.Time(f))
+	return DateTimeFilter("OfficeRecordLastModifiedUtc", time.Time(f))
 }

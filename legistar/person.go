@@ -25,7 +25,7 @@ type Person struct {
 type PersonLastModifiedFilter time.Time
 
 func (p PersonLastModifiedFilter) Paramters() url.Values {
-	return dateTimeFilter("PersonLastModifiedUtc", time.Time(p))
+	return DateTimeFilter("PersonLastModifiedUtc", time.Time(p))
 }
 
 func (p Person) Slug() string {
