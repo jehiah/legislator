@@ -96,6 +96,18 @@ func (s SyncApp) writeFile(fn string, o interface{}) error {
 	return f.Close()
 }
 
+func (s SyncApp) readFile(fn string, o interface{}) error {
+	fn = filepath.Join(s.targetDir, fn)
+	body, err := os.ReadFile(fn)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	return json.Unmarshal(body, &o)
+}
+
 func (s SyncApp) Save() error {
 	fn := filepath.Join(s.targetDir, "last_sync.json")
 	f, err := os.Create(fn)
