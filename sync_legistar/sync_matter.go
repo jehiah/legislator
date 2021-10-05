@@ -31,8 +31,8 @@ func (s *SyncApp) SyncMatter() error {
 	filter := legistar.AndFilters(
 		legistar.MatterLastModifiedFilter(s.LastSync.Matters),
 		legistar.MatterTypeFilter("Introduction"),
-		// IntroDateYearFilter{time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
-		IntroDateYearFilter{time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+		IntroDateYearFilter{time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+		// IntroDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
 	)
 
 	matters, err := s.legistar.Matters(filter)
