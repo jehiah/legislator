@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
@@ -12,12 +13,14 @@ import (
 )
 
 func (s *SyncApp) SyncPersons() error {
-
-	persons, err := s.legistar.Persons(legistar.PersonLastModifiedFilter(s.LastSync.Persons))
+	ctx := context.Background()
+	persons, err := s.legistar.Persons(ctx,
+		legistar.PersonLastModifiedFilter(s.LastSync.Persons),
+	)
 	slugs := make(map[string]bool)
 
 	for _, p := range persons {
-		officeRecords, err := s.legistar.PersonOfficeRecords(p.ID)
+		officeRecords, err := s.legistar.PersonOfficeRecords(ctx, p.ID)
 		if err != nil {
 			return err
 		}

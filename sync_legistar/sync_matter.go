@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/url"
 	"path/filepath"
@@ -27,7 +28,7 @@ func LegislationFilename(m db.Legislation) string {
 }
 
 func (s *SyncApp) SyncMatter() error {
-
+	ctx := context.Background()
 	filter := legistar.AndFilters(
 		legistar.MatterLastModifiedFilter(s.LastSync.Matters),
 		legistar.MatterTypeFilter("Introduction"),
@@ -35,7 +36,7 @@ func (s *SyncApp) SyncMatter() error {
 		// IntroDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
 	)
 
-	matters, err := s.legistar.Matters(filter)
+	matters, err := s.legistar.Matters(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func (s *SyncApp) SyncMatter() error {
 		}
 		s.legislationLookup[fn] = true
 
-		sponsors, err := s.legistar.MatterSponsors(m.ID)
+		sponsors, err := s.legistar.MatterSponsors(ctx, m.ID)
 		if err != nil {
 			return err
 		}
@@ -60,19 +61,18 @@ func (s *SyncApp) SyncMatter() error {
 			l.Sponsors = append(l.Sponsors, s.personLookup[p.NameID].Reference())
 		}
 
-		versions, err := s.legistar.MatterTextVersions(m.ID)
+		versions, err := s.legistar.MatterTextVersions(ctx, m.ID)
 		if err != nil {
 			return err
 		}
 		l.TextID = versions.LatestTextID()
-		txt, err := s.legistar.MatterText(m.ID, l.TextID)
+		txt, err := s.legistar.MatterText(ctx, m.ID, l.TextID)
 		l.Text = txt.Plain
 		l.RTF = txt.RTF
 
 		if err = s.writeFile(fn, l); err != nil {
 			return err
 		}
-		time.Sleep(250 * time.Millisecond)
 	}
 
 	if len(matters) > 0 {

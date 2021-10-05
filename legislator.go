@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"html/template"
 	"log"
@@ -23,13 +24,14 @@ type App struct {
 }
 
 func NewApp(client *legistar.Client, t *template.Template) *App {
-	people, err := client.Persons()
+	ctx := context.Background()
+	people, err := client.Persons(ctx, nil)
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("loaded %d people", len(people))
 	sort.Slice(people, func(i, j int) bool { return people[i].FullName < people[j].FullName })
-	voteTypes, err := client.VoteTypes()
+	voteTypes, err := client.VoteTypes(ctx)
 	log.Printf("loaded %d vote types", len(voteTypes))
 	if err != nil {
 		panic(err)
@@ -62,7 +64,7 @@ func (a *App) Person(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 		return
 	}
 
-	officeRecords, err := a.legistar.PersonOfficeRecords(p.ID)
+	officeRecords, err := a.legistar.PersonOfficeRecords(r.Context(), p.ID)
 	if err != nil {
 		log.Printf("%s", err)
 		http.Error(w, "Unknown Error", 500)
@@ -88,7 +90,7 @@ func (a *App) PersonVotes(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 
-	v, err := a.legistar.PersonVotes(p.ID)
+	v, err := a.legistar.PersonVotes(r.Context(), p.ID)
 	if err != nil {
 		if legistar.IsNotFoundError(err) {
 			http.Error(w, "Not Found", 404)
@@ -115,10 +117,10 @@ func main() {
 	listen := flag.String("address", "0.0.0.0:7002", "address to listen on")
 	templatePath := flag.String("templates", "templates", "path to templates")
 	flag.Parse()
-	app := NewApp(&legistar.Client{
-		Client: "nyc",
-		Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
-	}, compileTemplates(*templatePath))
+	app := NewApp(
+		legistar.NewClient("nyc", os.Getenv("NYC_LEGISLATOR_TOKEN")),
+		compileTemplates(*templatePath),
+	)
 	router := httprouter.New()
 	router.GET("/", app.Index)
 	router.GET("/people/:person_slug", app.Person)

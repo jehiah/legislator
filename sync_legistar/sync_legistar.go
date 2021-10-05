@@ -119,10 +119,7 @@ func main() {
 	}
 
 	s := &SyncApp{
-		legistar: &legistar.Client{
-			Client: "nyc",
-			Token:  os.Getenv("NYC_LEGISLATOR_TOKEN"),
-		},
+		legistar:          legistar.NewClient("nyc", os.Getenv("NYC_LEGISLATOR_TOKEN")),
 		personLookup:      make(map[int]db.Person),
 		legislationLookup: make(map[string]bool),
 		targetDir:         *targetDir,
