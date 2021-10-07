@@ -108,8 +108,9 @@ func (s *SyncApp) LoadMatter() error {
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		s.legislationLookup[strings.TrimPrefix(file, s.targetDir+"/")] = true
+	for _, fn := range files {
+		fn = strings.TrimPrefix(fn, s.targetDir+"/")
+		s.legislationLookup[fn] = true
 	}
 
 	log.Printf("loaded %d legislation files", len(s.legislationLookup))

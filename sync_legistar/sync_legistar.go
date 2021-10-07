@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/db"
@@ -79,17 +80,17 @@ func (s SyncApp) writeFile(fn string, o interface{}) error {
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(o)
-	if err != nil {
-		return err
-	}
 	log.Printf("creating %s", fn)
 	f, err := os.Create(fn)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	_, err = f.Write(b)
+
+	e := json.NewEncoder(f)
+	e.SetEscapeHTML(false)
+	e.SetIndent("", "  ")
+	err = e.Encode(o)
 	if err != nil {
 		return err
 	}
@@ -125,6 +126,7 @@ func (s SyncApp) Save() error {
 
 func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
+	reformat := flag.Bool("reformat-json", false, "re-format json")
 	flag.Parse()
 	if *targetDir == "" {
 		log.Fatal("set --target-dir")
@@ -136,6 +138,13 @@ func main() {
 		legislationLookup: make(map[string]bool),
 		targetDir:         *targetDir,
 	}
+	if *reformat {
+		err := s.ReformatJSON()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	if err := s.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -145,4 +154,43 @@ func main() {
 	if err := s.Save(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (s SyncApp) ReformatJSON() error {
+
+	files, err := filepath.Glob(filepath.Join(s.targetDir, "introduction", "*", "*.json"))
+	if err != nil {
+		return err
+	}
+	for _, fn := range files {
+		fn = strings.TrimPrefix(fn, s.targetDir+"/")
+		var l *db.Legislation
+		err := s.readFile(fn, &l)
+		if err != nil {
+			return err
+		}
+		err = s.writeFile(fn, l)
+		if err != nil {
+			return err
+		}
+	}
+
+	files, err = filepath.Glob(filepath.Join(s.targetDir, "people", "*.json"))
+	if err != nil {
+		return err
+	}
+	for _, fn := range files {
+		fn = strings.TrimPrefix(fn, s.targetDir+"/")
+		var p db.Person
+		err = s.readFile(fn, &p)
+		if err != nil {
+			return err
+		}
+		err = s.writeFile(fn, p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

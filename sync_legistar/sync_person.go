@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/db"
@@ -56,13 +55,10 @@ func (s *SyncApp) LoadPersons() error {
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		b, err := os.ReadFile(file)
-		if err != nil {
-			return err
-		}
+	for _, fn := range files {
+		fn = strings.TrimPrefix(fn, s.targetDir+"/")
 		var p db.Person
-		err = json.Unmarshal(b, &p)
+		err = s.readFile(fn, &p)
 		if err != nil {
 			return err
 		}

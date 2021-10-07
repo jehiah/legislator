@@ -158,13 +158,17 @@ func (c Client) Call(ctx context.Context, endpoint string, params url.Values, da
 	if params == nil {
 		params = url.Values{}
 	}
+	if strings.Contains(u, "?") {
+		log.Printf("GET %s", u+"&"+params.Encode())
+	} else {
+		log.Printf("GET %s", u+"?"+params.Encode())
+	}
 	params.Set("token", c.Token)
 	if strings.Contains(u, "?") {
 		u += "&" + params.Encode()
 	} else {
 		u += "?" + params.Encode()
 	}
-	log.Printf("GET %s", u)
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return err
