@@ -3,6 +3,7 @@ package legistar
 import (
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -138,6 +139,51 @@ type MatterText struct {
 	Version      string `json:"MatterTextVersion"`
 	Plain        string `json:"MatterTextPlain"`
 	RTF          string `json:"MatterTextRtf"`
+}
+
+// SimplifiedText returns text without the "$file\nBy Councilmembers ...\n\n..Title:\n$title" preamble
+func (t MatterText) SimplifiedText() string {
+	t.Plain = strings.ReplaceAll(t.Plain, "\r\n", "\n")
+	s := strings.Split(t.Plain, "\n")
+	for i, ss := range s {
+		if ss == "..Body" {
+			s = s[i+1:]
+			break
+		}
+	}
+	return strings.TrimSpace(strings.Join(s, "\n"))
+}
+
+// SimplifiedRTF returns RTF without the "$file\nBy Councilmembers ...\n\n..Title:\n$title" preamble
+func (t MatterText) SimplifiedRTF() string {
+	t.RTF = strings.ReplaceAll(t.RTF, "\r\n", "\n")
+	s := strings.Split(t.RTF, "\n")
+	if len(s) < 3 {
+		return t.RTF
+	}
+	// \viewkindN ; 4 == normal
+	// \ucN ; unicode char; 1 == "start of header"
+	// \pard  is paragraph definition
+
+	// we want to skip till we get \viewkind and
+	// strip till we get the paragraph line for ..Body
+	foundStart := -1
+	for i, ss := range s {
+		// log.Printf("s[%d] %q", i, ss)
+		if strings.Contains(ss, `\viewkind4\uc1`) && foundStart == -1 {
+			s[i] = `\viewkind4\uc1`
+			foundStart = i
+			continue
+		}
+		if strings.Contains(ss, "..Body") {
+			if foundStart == -1 {
+				break
+			}
+			s = append(s[:foundStart+1], s[i+1:]...)
+			break
+		}
+	}
+	return strings.Join(s, "\n")
 }
 
 // MatterTextVersion

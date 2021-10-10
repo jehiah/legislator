@@ -169,6 +169,14 @@ func (s SyncApp) ReformatJSON() error {
 		if err != nil {
 			return err
 		}
+		// one-time re-format Text and RTF
+		// log.Printf("file %s", fn)
+		// mt := legistar.MatterText{
+		// 	Plain: l.Text,
+		// 	RTF:   l.RTF,
+		// }
+		// l.Text = mt.SimplifiedText()
+		// l.RTF = mt.SimplifiedRTF()
 		err = s.writeFile(fn, l)
 		if err != nil {
 			return err
