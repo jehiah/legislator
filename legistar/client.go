@@ -88,7 +88,7 @@ func (c Client) Matters(ctx context.Context, f Filters) (Matters, error) {
 
 func (c Client) Matter(ctx context.Context, ID int) (Matter, error) {
 	var v Matter
-	return v, c.Call(ctx, fmt.Sprintf("/Matter/%d", ID), nil, &v)
+	return v, c.Call(ctx, fmt.Sprintf("/Matters/%d", ID), nil, &v)
 }
 
 func (c Client) MatterSponsors(ctx context.Context, ID int) (MatterSponsors, error) {

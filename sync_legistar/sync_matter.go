@@ -45,9 +45,6 @@ func (s *SyncApp) SyncMatter() error {
 	for _, m := range matters {
 		l := db.NewLegislation(m)
 		fn := LegislationFilename(l)
-		if s.legislationLookup[fn] {
-			continue
-		}
 		s.legislationLookup[fn] = true
 		err = s.updateMatter(ctx, l)
 		if err != nil {
@@ -66,8 +63,7 @@ func (s *SyncApp) SyncMatter() error {
 	return nil
 }
 
-func (s *SyncApp) UpdateMatter(ID int) error {
-	ctx := context.Background()
+func (s *SyncApp) UpdateMatter(ctx context.Context, ID int) error {
 	m, err := s.legistar.Matter(ctx, ID)
 	if err != nil {
 		return err
@@ -127,6 +123,11 @@ func (s SyncApp) UpdateMatterSponsors() error {
 			return err
 		}
 		if l.IntroDate.Before(currentSessionStart) {
+			coantinue
+		}
+		switch l.StatusName {
+		case "Enacted":
+			// once things are enacted there shouldn't be sponsor updates
 			continue
 		}
 
