@@ -52,10 +52,10 @@ func (s *SyncApp) SyncMatter() error {
 		}
 	}
 
-	// check if any have new sponsors
-	if err = s.UpdateMatterSponsors(); err != nil {
-		return err
-	}
+	// // check if any have new sponsors
+	// if err = s.UpdateMatterSponsors(); err != nil {
+	// 	return err
+	// }
 
 	if len(matters) > 0 {
 		s.LastSync.Matters = db.Max(matters, func(i int) time.Time { return matters[i].LastModified.Time })
@@ -123,7 +123,7 @@ func (s SyncApp) UpdateMatterSponsors() error {
 			return err
 		}
 		if l.IntroDate.Before(currentSessionStart) {
-			coantinue
+			continue
 		}
 		switch l.StatusName {
 		case "Enacted":

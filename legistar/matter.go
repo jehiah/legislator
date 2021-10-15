@@ -146,7 +146,7 @@ func (t MatterText) SimplifiedText() string {
 	t.Plain = strings.ReplaceAll(t.Plain, "\r\n", "\n")
 	s := strings.Split(t.Plain, "\n")
 	for i, ss := range s {
-		if ss == "..Body" {
+		if strings.TrimSpace(strings.ToLower(ss)) == "..body" {
 			s = s[i+1:]
 			break
 		}
@@ -175,7 +175,7 @@ func (t MatterText) SimplifiedRTF() string {
 			foundStart = i
 			continue
 		}
-		if strings.Contains(ss, "..Body") {
+		if strings.Contains(ss, "..Body") || strings.Contains(ss, "..body") {
 			if foundStart == -1 {
 				break
 			}
