@@ -1,0 +1,16 @@
+name: update-nyc-legislation
+  schedule:
+    - cron:  '5 4 * * *'
+
+jobs:
+  # The "build" workflow
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+    # Run build of the application
+    - name: update
+      run: scripts/update_nyc_legislation.sh
