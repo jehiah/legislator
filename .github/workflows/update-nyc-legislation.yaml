@@ -21,4 +21,5 @@ jobs:
     - name: update
       env:
         NYC_LEGISLATOR_TOKEN: ${{ secrets.NYC_LEGISLATOR_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: scripts/update_nyc_legislation.sh
