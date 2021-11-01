@@ -19,4 +19,6 @@ jobs:
         go-version: '1.17'
     # Run build of the application
     - name: update
+      env:
+        NYC_LEGISLATOR_TOKEN: ${{ secrets.NYC_LEGISLATOR_TOKEN }}
       run: scripts/update_nyc_legislation.sh
