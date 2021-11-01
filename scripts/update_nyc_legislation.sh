@@ -22,4 +22,14 @@ fi
 
 pushd ../nyc_legislation
 git status
+
+FILES_CHANGED=$(git diff --name-only | wc -l)
+echo "FILES_CHANGED: ${FILES_CHANGED}"
+# if more than one changed commit it
+# if [[ "${FILES_CHANGED}" -gt 1 ]]; then
+    DT=$(TZ=America/New_York date "+%Y-%m-%d %H:%M")
+    git commit -a -m "sync: ${DT}"
+    git push origin master
+# fi
+
 popd
