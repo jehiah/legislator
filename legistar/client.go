@@ -31,16 +31,24 @@ type Filter struct {
 type Client struct {
 	Client string // i.e. Client in http://webapi.legistar.com/v1/{Client}
 
+	LookupURL *url.URL
+
 	Token      string
 	HttpClient *http.Client
 	Limiter    *rate.Limiter
 }
 
 func NewClient(client, token string) *Client {
+	h := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	return &Client{
-		Client:  client,
-		Token:   token,
-		Limiter: rate.NewLimiter(rate.Every(20*time.Millisecond), 20),
+		Client:     client,
+		HttpClient: h,
+		Token:      token,
+		Limiter:    rate.NewLimiter(rate.Every(20*time.Millisecond), 20),
 	}
 }
 
