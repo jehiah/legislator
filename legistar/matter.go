@@ -83,6 +83,12 @@ func (p MatterTypeFilter) Paramters() url.Values {
 	return StringFilter("MatterTypeName", string(p))
 }
 
+type MatterFileFilter string
+
+func (p MatterFileFilter) Paramters() url.Values {
+	return StringFilter("MatterFile", string(p))
+}
+
 // MatterSponsor
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-Matters-MatterId-Sponsors
 type MatterSponsor struct {
