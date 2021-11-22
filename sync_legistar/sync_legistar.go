@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/db"
@@ -74,14 +73,18 @@ func (s *SyncApp) Run() error {
 	return nil
 }
 
-func (s SyncApp) writeFile(fn string, o interface{}) error {
+func (s SyncApp) openWriteFile(fn string) (*os.File, error) {
 	fn = filepath.Join(s.targetDir, fn)
 	err := os.MkdirAll(filepath.Dir(fn), 0777)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Printf("creating %s", fn)
-	f, err := os.Create(fn)
+	return os.Create(fn)
+}
+
+func (s SyncApp) writeFile(fn string, o interface{}) error {
+	f, err := s.openWriteFile(fn)
 	if err != nil {
 		return err
 	}
@@ -110,6 +113,11 @@ func (s SyncApp) readFile(fn string, o interface{}) error {
 }
 
 func (s SyncApp) Save() error {
+	err := s.CreateIndexes()
+	if err != nil {
+		return err
+	}
+
 	fn := filepath.Join(s.targetDir, "last_sync.json")
 	f, err := os.Create(fn)
 	if err != nil {
@@ -126,7 +134,7 @@ func (s SyncApp) Save() error {
 
 func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
-	reformat := flag.Bool("reformat-json", false, "re-format json")
+	update := flag.String("update-one", "", "update one")
 	flag.Parse()
 	if *targetDir == "" {
 		log.Fatal("set --target-dir")
@@ -138,67 +146,20 @@ func main() {
 		legislationLookup: make(map[string]bool),
 		targetDir:         *targetDir,
 	}
-	if *reformat {
-		err := s.ReformatJSON()
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
+
 	if err := s.Load(); err != nil {
 		log.Fatal(err)
 	}
-	if err := s.Run(); err != nil {
-		log.Fatal(err)
+	if *update != "" {
+		if err := s.UpdateOne(*update); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := s.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 	if err := s.Save(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (s SyncApp) ReformatJSON() error {
-
-	files, err := filepath.Glob(filepath.Join(s.targetDir, "introduction", "*", "*.json"))
-	if err != nil {
-		return err
-	}
-	for _, fn := range files {
-		fn = strings.TrimPrefix(fn, s.targetDir+"/")
-		var l *db.Legislation
-		err := s.readFile(fn, &l)
-		if err != nil {
-			return err
-		}
-		// one-time re-format Text and RTF
-		// log.Printf("file %s", fn)
-		// mt := legistar.MatterText{
-		// 	Plain: l.Text,
-		// 	RTF:   l.RTF,
-		// }
-		// l.Text = mt.SimplifiedText()
-		// l.RTF = mt.SimplifiedRTF()
-		err = s.writeFile(fn, l)
-		if err != nil {
-			return err
-		}
-	}
-
-	files, err = filepath.Glob(filepath.Join(s.targetDir, "people", "*.json"))
-	if err != nil {
-		return err
-	}
-	for _, fn := range files {
-		fn = strings.TrimPrefix(fn, s.targetDir+"/")
-		var p db.Person
-		err = s.readFile(fn, &p)
-		if err != nil {
-			return err
-		}
-		err = s.writeFile(fn, p)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
+// NOTE: Struct ordering affects JSON format
+
 type Legislation struct {
 	ID    int
 	GUID  string
@@ -23,17 +25,27 @@ type Legislation struct {
 	AgendaDate    time.Time
 	PassedDate    time.Time
 	EnactmentDate time.Time
-	Version       string
+	Version       string `json:",omitempty"`
 
-	Sponsors []PersonReference
+	Sponsors []PersonReference `json:",omitempty"`
 
 	Summary string // MatterEXText5
 
-	TextID int
-	Text   string // current version
-	RTF    string // current version
+	TextID int    `json:",omitempty"`
+	Text   string `json:",omitempty"` // current version
+	RTF    string `json:",omitempty"` // current version
 
 	LastModified time.Time
+}
+
+// Shallow returns a copy of l with details about the text and sponsors ommitted
+func (l Legislation) Shallow() Legislation {
+	l.Version = ""
+	l.Text = ""
+	l.TextID = 0
+	l.RTF = ""
+	l.Sponsors = nil
+	return l
 }
 
 func NewLegislation(m legistar.Matter) Legislation {
