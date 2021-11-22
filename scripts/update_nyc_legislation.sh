@@ -21,6 +21,7 @@ fi
 
 
 pushd ../nyc_legislation
+git add .
 git status
 
 FILES_CHANGED=$(git diff --name-only | wc -l)
