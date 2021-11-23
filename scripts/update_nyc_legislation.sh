@@ -24,7 +24,7 @@ pushd ../nyc_legislation
 git add .
 git status
 
-FILES_CHANGED=$(git diff --name-only | wc -l)
+FILES_CHANGED=$(git diff --staged --name-only | wc -l)
 echo "FILES_CHANGED: ${FILES_CHANGED}"
 # if more than one changed commit it (last_sync.json is always updated)
 if [[ "${FILES_CHANGED}" -gt 1 ]]; then
