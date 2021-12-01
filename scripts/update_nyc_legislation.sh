@@ -5,8 +5,8 @@ mkdir -p build
 go build -o build ./sync_legistar
 
 if [ "$(git config --get user.email)" == "" ]; then
-    git config --global user.email "jehiah@gmail.com"
-    git config --global user.name "Jehiah Czebotar"
+    git config --global user.email "automatic-data-update@jehiah.cz"
+    git config --global user.name "Data Update"
 fi
 
 if [ ! -e ../nyc_legislation ]; then
