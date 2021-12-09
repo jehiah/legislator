@@ -35,6 +35,17 @@ func (s *SyncApp) SyncPersons() error {
 		slugs[p.Slug()] = true
 
 		record := db.NewPerson(p, officeRecords)
+
+		// if the name has changed, remove the old one
+		if r, ok := s.personLookup[record.ID]; ok && r.Slug != p.Slug() {
+			// name changed
+			err = s.removeFile(filepath.Join("people", r.Slug+".json"))
+			if err != nil {
+				return err
+			}
+			// TODO: update existing references
+		}
+
 		s.personLookup[record.ID] = record
 
 		if err := s.writeFile(filepath.Join("people", record.Slug+".json"), record); err != nil {

@@ -100,6 +100,15 @@ func (s SyncApp) writeFile(fn string, o interface{}) error {
 	return f.Close()
 }
 
+func (s SyncApp) removeFile(fn string) error {
+	fn = filepath.Join(s.targetDir, fn)
+	err := os.Remove(fn)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
 func (s SyncApp) readFile(fn string, o interface{}) error {
 	fn = filepath.Join(s.targetDir, fn)
 	body, err := os.ReadFile(fn)
@@ -135,6 +144,7 @@ func (s SyncApp) Save() error {
 func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	update := flag.String("update-one", "", "update one")
+	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
 	flag.Parse()
 	if *targetDir == "" {
 		log.Fatal("set --target-dir")
@@ -159,7 +169,9 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	if err := s.Save(); err != nil {
-		log.Fatal(err)
+	if !*skipIndexUpdate {
+		if err := s.Save(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
