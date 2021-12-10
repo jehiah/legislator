@@ -92,13 +92,33 @@ func (s *SyncApp) UpdateAll() error {
 		if err != nil {
 			return err
 		}
-		err = s.UpdateMatter(ctx, l.ID)
+		err = s.UpdateMatterWithRetry(ctx, l.ID)
 		if err != nil {
 			return err
 		}
 
 	}
 	return nil
+}
+
+func (s *SyncApp) UpdateMatterWithRetry(ctx context.Context, ID int) error {
+	m, err := s.legistar.Matter(ctx, ID)
+	if err != nil {
+		log.Print(err)
+		time.Sleep(time.Second)
+		m, err = s.legistar.Matter(ctx, ID)
+	}
+	if err != nil {
+		return err
+	}
+	l := db.NewLegislation(m)
+	err = s.updateMatter(ctx, l)
+	if err != nil {
+		log.Print(err)
+		time.Sleep(time.Second)
+		err = s.updateMatter(ctx, l)
+	}
+	return err
 }
 
 func (s *SyncApp) UpdateMatter(ctx context.Context, ID int) error {
