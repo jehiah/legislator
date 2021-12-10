@@ -28,6 +28,7 @@ type Legislation struct {
 	Version       string `json:",omitempty"`
 
 	Sponsors []PersonReference `json:",omitempty"`
+	History  []History         `json:",omitempty"`
 
 	Summary string // MatterEXText5
 
@@ -73,4 +74,80 @@ func NewLegislation(m legistar.Matter) Legislation {
 		LastModified: m.LastModified.Time,
 	}
 	return l
+}
+
+type History struct {
+	ID int
+	// GUID string
+
+	Date        time.Time
+	ActionID    int
+	Action      string
+	Description string
+	BodyID      int
+	BodyName    string
+
+	EventID         int    `json:",omitempty"`
+	AgendaSequence  int    `json:",omitempty"`
+	MinutesSequence int    `json:",omitempty"`
+	AgendaNumber    string `json:",omitempty"`
+	Video           int    `json:",omitempty"`
+	VideoIndex      int    `json:",omitempty"`
+	Version         string
+	AgendaNote      string `json:",omitempty"`
+	MinutesNote     string `json:",omitempty"`
+
+	PassedFlag     int    `json:",omitempty"`
+	PassedFlagName string `json:",omitempty"`
+	RollCallFlag   int    `json:",omitempty"`
+	FlagExtra      int    `json:",omitempty"`
+	Tally          string `json:",omitempty"`
+	AccelaRecordID string `json:",omitempty"`
+	Consent        int    `json:",omitempty"`
+	MoverID        int    `json:",omitempty"`
+	MoverName      string `json:",omitempty"`
+	SeconderID     int    `json:",omitempty"`
+	SeconderName   string `json:",omitempty"`
+	MatterStatusID int
+
+	LastModified time.Time
+}
+
+func NewHistory(h legistar.MatterHistory) History {
+	return History{
+		ID: h.ID,
+		// GUID: h.GUID,
+
+		Date:        h.ActionDate.Time,
+		ActionID:    h.ActionID,
+		Action:      h.ActionName,
+		Description: h.ActionText,
+		BodyID:      h.ActionBodyID,
+		BodyName:    h.ActionBodyName,
+
+		EventID:         h.EventID,
+		AgendaSequence:  h.AgendaSequence,
+		MinutesSequence: h.MinutesSequence,
+		AgendaNumber:    h.AgendaNumber,
+		Video:           h.Video,
+		VideoIndex:      h.VideoIndex,
+		Version:         h.Version,
+		AgendaNote:      h.AgendaNote,
+		MinutesNote:     h.MinutesNote,
+
+		PassedFlag:     h.PassedFlag,
+		PassedFlagName: h.PassedFlagName,
+		RollCallFlag:   h.RollCallFlag,
+		FlagExtra:      h.FlagExtra,
+		Tally:          h.Tally,
+		AccelaRecordID: h.AccelaRecordID,
+		Consent:        h.Consent,
+		MoverID:        h.MoverID,
+		MoverName:      h.MoverName,
+		SeconderID:     h.SeconderID,
+		SeconderName:   h.SeconderName,
+		MatterStatusID: h.MatterStatusID,
+
+		LastModified: h.LastModified.Time,
+	}
 }

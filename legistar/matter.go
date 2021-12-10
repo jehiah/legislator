@@ -208,3 +208,38 @@ func (m MatterTextVersions) LatestTextID() int {
 	n, _ := strconv.Atoi(m[len(m)-1].TextID)
 	return n
 }
+
+type MatterHistory struct {
+	ID              int    `json:"MatterHistoryId"`
+	GUID            string `json:"MatterHistoryGuid"`
+	LastModified    Time   `json:"MatterHistoryLastModifiedUtc"`
+	RowVersion      string `json:"MatterHistoryRowVersion"`
+	EventID         int    `json:"MatterHistoryEventId"`
+	AgendaSequence  int    `json:"MatterHistoryAgendaSequence"`
+	MinutesSequence int    `json:"MatterHistoryMinutesSequence"`
+	AgendaNumber    string `json:"MatterHistoryAgendaNumber"`
+	Video           int    `json:"MatterHistoryVideo"`
+	VideoIndex      int    `json:"MatterHistoryVideoIndex"`
+	Version         string `json:"MatterHistoryVersion"`
+	AgendaNote      string `json:"MatterHistoryAgendaNote"`
+	MinutesNote     string `json:"MatterHistoryMinutesNote"`
+	ActionDate      Time   `json:"MatterHistoryActionDate"`
+	ActionID        int    `json:"MatterHistoryActionId"`
+	ActionName      string `json:"MatterHistoryActionName"`
+	ActionText      string `json:"MatterHistoryActionText"`
+	ActionBodyID    int    `json:"MatterHistoryActionBodyId"`
+	ActionBodyName  string `json:"MatterHistoryActionBodyName"`
+	PassedFlag      int    `json:"MatterHistoryPassedFlag"`     // make bool
+	PassedFlagName  string `json:"MatterHistoryPassedFlagName"` // i.e. "Pass"
+	RollCallFlag    int    `json:"MatterHistoryRollCallFlag"`
+	FlagExtra       int    `json:"MatterHistoryFlagExtra"`
+	Tally           string `json:"MatterHistoryTally"`
+	AccelaRecordID  string `json:"MatterHistoryAccelaRecordId"`
+	Consent         int    `json:"MatterHistoryConsent"`
+	MoverID         int    `json:"MatterHistoryMoverId"`
+	MoverName       string `json:"MatterHistoryMoverName"`
+	SeconderID      int    `json:"MatterHistorySeconderId"`
+	SeconderName    string `json:"MatterHistorySeconderName"`
+	MatterStatusID  int    `json:"MatterHistoryMatterStatusId"`
+}
+type MatterHistories []MatterHistory

@@ -84,6 +84,23 @@ func (s *SyncApp) UpdateOne(q string) error {
 	return s.UpdateMatter(ctx, matters[0].ID)
 }
 
+func (s *SyncApp) UpdateAll() error {
+	ctx := context.Background()
+	for fn := range s.legislationLookup {
+		var l *db.Legislation
+		err := s.readFile(fn, &l)
+		if err != nil {
+			return err
+		}
+		err = s.UpdateMatter(ctx, l.ID)
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
 func (s *SyncApp) UpdateMatter(ctx context.Context, ID int) error {
 	m, err := s.legistar.Matter(ctx, ID)
 	if err != nil {
@@ -106,6 +123,15 @@ func (s *SyncApp) updateMatter(ctx context.Context, l db.Legislation) error {
 			continue
 		}
 		l.Sponsors = append(l.Sponsors, s.personLookup[p.NameID].Reference())
+	}
+
+	history, err := s.legistar.MatterHistories(ctx, l.ID)
+	if err != nil {
+		return err
+	}
+	l.History = nil
+	for _, mh := range history {
+		l.History = append(l.History, db.NewHistory(mh))
 	}
 
 	versions, err := s.legistar.MatterTextVersions(ctx, l.ID)

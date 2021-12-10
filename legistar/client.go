@@ -106,6 +106,18 @@ func (c Client) MatterSponsors(ctx context.Context, ID int) (MatterSponsors, err
 	return v, err
 }
 
+func (c Client) MatterHistories(ctx context.Context, ID int) (MatterHistories, error) {
+	var v MatterHistories
+	err := c.Call(ctx, fmt.Sprintf("/Matters/%d/Histories?AgendaNote=1&MinutesNote=1", ID), nil, &v)
+	sort.Slice(v, func(i, j int) bool {
+		if v[i].ActionDate.Time.Equal(v[j].ActionDate.Time) {
+			return v[i].ID < v[j].ID
+		}
+		return v[i].ActionDate.Time.Before(v[j].ActionDate.Time)
+	})
+	return v, err
+}
+
 func (c Client) MatterText(ctx context.Context, matterID, textID int) (MatterText, error) {
 	var v MatterText
 	if textID == 0 {

@@ -143,7 +143,8 @@ func (s SyncApp) Save() error {
 
 func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
-	update := flag.String("update-one", "", "update one")
+	updateOne := flag.String("update-one", "", "update one")
+	updateAll := flag.Bool("update-all", false, "update all")
 	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
 	flag.Parse()
 	if *targetDir == "" {
@@ -160,8 +161,12 @@ func main() {
 	if err := s.Load(); err != nil {
 		log.Fatal(err)
 	}
-	if *update != "" {
-		if err := s.UpdateOne(*update); err != nil {
+	if *updateOne != "" {
+		if err := s.UpdateOne(*updateOne); err != nil {
+			log.Fatal(err)
+		}
+	} else if *updateAll {
+		if err := s.UpdateAll(); err != nil {
 			log.Fatal(err)
 		}
 	} else {
