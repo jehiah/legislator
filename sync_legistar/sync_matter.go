@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -218,52 +216,6 @@ func (s SyncApp) UpdateMatterSponsors() error {
 			if err != nil {
 				return err
 			}
-		}
-	}
-	return nil
-}
-func (s SyncApp) CreateIndexes() error {
-	fileGroups := make(map[string][]string)
-	for fn := range s.legislationLookup {
-		fileGroups[filepath.Dir(fn)] = append(fileGroups[filepath.Dir(fn)], fn)
-	}
-	// for each year
-	for yearDir, files := range fileGroups {
-		sort.Strings(files)
-		f, err := s.openWriteFile(filepath.Join(yearDir, "index.json"))
-		if err != nil {
-			return err
-		}
-		e := json.NewEncoder(f)
-		e.SetEscapeHTML(false)
-
-		for i, fn := range files {
-			var l db.Legislation
-			err = s.readFile(fn, &l)
-			if err != nil {
-				return fmt.Errorf("error reading %q %w", fn, err)
-			}
-
-			if i == 0 {
-				_, err = f.WriteString("[\n")
-			} else {
-				_, err = f.WriteString(",\n")
-			}
-			if err != nil {
-				return err
-			}
-			err = e.Encode(l.Shallow())
-			if err != nil {
-				return err
-			}
-		}
-		_, err = f.WriteString("]\n")
-		if err != nil {
-			return err
-		}
-		err = f.Close()
-		if err != nil {
-			return err
 		}
 	}
 	return nil

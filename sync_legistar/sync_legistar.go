@@ -122,11 +122,6 @@ func (s SyncApp) readFile(fn string, o interface{}) error {
 }
 
 func (s SyncApp) Save() error {
-	err := s.CreateIndexes()
-	if err != nil {
-		return err
-	}
-
 	fn := filepath.Join(s.targetDir, "last_sync.json")
 	f, err := os.Create(fn)
 	if err != nil {
