@@ -243,3 +243,25 @@ type MatterHistory struct {
 	MatterStatusID  int    `json:"MatterHistoryMatterStatusId"`
 }
 type MatterHistories []MatterHistory
+
+type MatterAttachment struct {
+	ID                   int    `json:"MatterAttachmentId"`
+	GUID                 string `json:"MatterAttachmentGuid"`
+	LastModified         Time   `json:"MatterAttachmentLastModifiedUtc"`
+	RowVersion           string `json:"MatterAttachmentRowVersion"`
+	Name                 string `json:"MatterAttachmentName"`
+	Link                 string `json:"MatterAttachmentHyperlink"`
+	FileName             string `json:"MatterAttachmentFileName"`
+	MatterVersion        string `json:"MatterAttachmentMatterVersion"` // 0
+	IsHyperlink          bool   `json:"MatterAttachmentIsHyperlink,omitempty"`
+	Binary               string `json:"MatterAttachmentBinary,omitempty"`
+	IsSupportingDocument bool   `json:"MatterAttachmentIsSupportingDocument,omitempty"`
+	ShowOnInternetPage   bool   `json:"MatterAttachmentShowOnInternetPage"`
+	IsMinuteOrder        bool   `json:"MatterAttachmentIsMinuteOrder,omitempty"`
+	IsBoardLetter        bool   `json:"MatterAttachmentIsBoardLetter,omitempty"`
+	AgiloftID            int    `json:"MatterAttachmentAgiloftId,omitempty"`
+	Description          string `json:"MatterAttachmentDescription,omitempty"`
+	PrintWithReports     bool   `json:"MatterAttachmentPrintWithReports"`
+	Sort                 int    `json:"MatterAttachmentSort"`
+}
+type MatterAttachments []MatterAttachment

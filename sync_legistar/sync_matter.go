@@ -152,6 +152,15 @@ func (s *SyncApp) updateMatter(ctx context.Context, l db.Legislation) error {
 		l.History = append(l.History, db.NewHistory(mh))
 	}
 
+	attachments, err := s.legistar.MatterAttachments(ctx, l.ID)
+	if err != nil {
+		return err
+	}
+	l.Attachments = nil
+	for _, a := range attachments {
+		l.Attachments = append(l.Attachments, db.NewAttachment(a))
+	}
+
 	versions, err := s.legistar.MatterTextVersions(ctx, l.ID)
 	if err != nil {
 		return err

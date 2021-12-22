@@ -27,8 +27,9 @@ type Legislation struct {
 	EnactmentDate time.Time
 	Version       string `json:",omitempty"`
 
-	Sponsors []PersonReference `json:",omitempty"`
-	History  []History         `json:",omitempty"`
+	Sponsors    []PersonReference `json:",omitempty"`
+	History     []History         `json:",omitempty"`
+	Attachments []Attachment      `json:",omitempty"`
 
 	Summary string // MatterEXText5
 
@@ -149,5 +150,31 @@ func NewHistory(h legistar.MatterHistory) History {
 		MatterStatusID: h.MatterStatusID,
 
 		LastModified: h.LastModified.Time,
+	}
+}
+
+type Attachment struct {
+	ID           int
+	LastModified time.Time
+	Name         string
+	Link         string
+	// MatterVersion        string
+	// IsSupportingDocument bool
+	// ShowOnInternetPage   bool
+	// IsMinuteOrder        bool
+	// IsBoardLetter        bool
+	// AgiloftID            int
+	// Description          string
+	// PrintWithReports     bool
+	Sort int
+}
+
+func NewAttachment(h legistar.MatterAttachment) Attachment {
+	return Attachment{
+		ID:           h.ID,
+		LastModified: h.LastModified.Time,
+		Name:         h.Name,
+		Link:         h.Link,
+		Sort:         h.Sort,
 	}
 }

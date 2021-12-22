@@ -131,6 +131,13 @@ func (c Client) MatterTextVersions(ctx context.Context, matterID int) (MatterTex
 	return v, c.Call(ctx, fmt.Sprintf("/Matters/%d/Versions", matterID), nil, &v)
 }
 
+func (c Client) MatterAttachments(ctx context.Context, matterID int) (MatterAttachments, error) {
+	var v MatterAttachments
+	err := c.Call(ctx, fmt.Sprintf("/Matters/%d/Attachments", matterID), nil, &v)
+	sort.Slice(v, func(i, j int) bool { return v[i].Sort < v[j].Sort })
+	return v, err
+}
+
 // VoteTypes
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-VoteTypes
 func (c Client) VoteTypes(ctx context.Context) (VoteTypes, error) {
