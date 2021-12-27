@@ -44,6 +44,10 @@ func (s *SyncApp) SyncMatter() error {
 	}
 
 	for _, m := range matters {
+		// temporary items - these appear to be working drafts
+		if strings.HasPrefix(m.File, "T") {
+			continue
+		}
 		l := db.NewLegislation(m)
 		fn := LegislationFilename(l)
 		s.legislationLookup[fn] = true
