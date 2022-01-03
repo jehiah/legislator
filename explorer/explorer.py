@@ -38,6 +38,9 @@ class Index(BaseHandler):
             resp = await self.legislator_req(name)
             logging.info('name %r', name)
             # logging.info('response %r', resp.body)
+            if self.get_argument("format",None) == "json":
+                self.write(resp.body)
+                return
             self.render("index.html", name=name, data=json.loads(resp.body))
 
 class Application(tornado.web.Application):
