@@ -9,11 +9,12 @@ import (
 // NOTE: Struct ordering affects JSON format
 
 type Legislation struct {
-	ID    int
-	GUID  string
-	File  string
-	Name  string
-	Title string
+	ID       int
+	GUID     string
+	File     string
+	LocalLaw string `json:",omitempty"` // format: $year/$number
+	Name     string
+	Title    string
 
 	TypeID        int
 	TypeName      string
@@ -52,11 +53,12 @@ func (l Legislation) Shallow() Legislation {
 
 func NewLegislation(m legistar.Matter) Legislation {
 	l := Legislation{
-		ID:    m.ID,
-		GUID:  m.GUID,
-		File:  m.File,
-		Name:  m.Name,
-		Title: m.Title,
+		ID:       m.ID,
+		GUID:     m.GUID,
+		File:     m.File,
+		LocalLaw: m.EnactmentNumber,
+		Name:     m.Name,
+		Title:    m.Title,
 
 		TypeID:        m.TypeID,
 		TypeName:      m.TypeName,

@@ -27,7 +27,7 @@ type Matter struct {
 	AgendaDate         Time   `json:"MatterAgendaDate"`
 	PassedDate         Time   `json:"MatterPassedDate"`
 	EnactmentDate      Time   `json:"MatterEnactmentDate"`
-	EnactmentNumber    string `json:"MatterEnactmentNumber"`
+	EnactmentNumber    string `json:"MatterEnactmentNumber"` // aka Local Law
 	Requester          string `json:"MatterRequester"`
 	Notes              string `json:"MatterNotes"`
 	Version            string `json:"MatterVersion"`
@@ -87,6 +87,12 @@ type MatterFileFilter string
 
 func (p MatterFileFilter) Paramters() url.Values {
 	return StringFilter("MatterFile", string(p))
+}
+
+type MatterEnactmentNumberFilter string
+
+func (p MatterEnactmentNumberFilter) Paramters() url.Values {
+	return StringFilter("MatterEnactmentNumber", string(p))
 }
 
 // MatterSponsor
