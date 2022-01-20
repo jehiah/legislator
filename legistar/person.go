@@ -8,6 +8,7 @@ import (
 )
 
 // http://webapi.legistar.com/Help/ResourceModel?modelName=GranicusPerson
+// Note: LastModified not updated for Email, WWW or OfficeRecords updates
 type Person struct {
 	ID           int    `json:"PersonId"`
 	GUID         string `json:"PersonGuid"`

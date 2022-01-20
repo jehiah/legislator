@@ -11,11 +11,20 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-func (s *SyncApp) SyncPersons() error {
+func (s *SyncApp) SyncPersons(all bool) error {
 	ctx := context.Background()
-	persons, err := s.legistar.Persons(ctx,
-		legistar.PersonLastModifiedFilter(s.LastSync.Persons),
-	)
+	var persons []legistar.Person
+	var err error
+	if all {
+		persons, err = s.legistar.Persons(ctx, nil)
+	} else {
+		persons, err = s.legistar.Persons(ctx,
+			legistar.PersonLastModifiedFilter(s.LastSync.Persons),
+		)
+	}
+	if err != nil {
+		return err
+	}
 	slugs := make(map[string]bool)
 
 	for _, p := range persons {

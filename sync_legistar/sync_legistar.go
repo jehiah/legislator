@@ -62,7 +62,7 @@ func (s *SyncApp) Run() error {
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
 	s.LastRun = time.Now().UTC().Truncate(time.Second)
-	err := s.SyncPersons()
+	err := s.SyncPersons(false)
 	if err != nil {
 		return err
 	}
@@ -138,6 +138,7 @@ func (s SyncApp) Save() error {
 
 func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
+	updatePeople := flag.Bool("update-people", false, "update all people")
 	updateOne := flag.String("update-one", "", "update one")
 	updateAll := flag.Bool("update-all", false, "update all")
 	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
@@ -156,18 +157,19 @@ func main() {
 	if err := s.Load(); err != nil {
 		log.Fatal(err)
 	}
-	if *updateOne != "" {
-		if err := s.UpdateOne(*updateOne); err != nil {
-			log.Fatal(err)
-		}
-	} else if *updateAll {
-		if err := s.UpdateAll(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := s.Run(); err != nil {
-			log.Fatal(err)
-		}
+	var err error
+	switch {
+	case *updateOne != "":
+		err = s.UpdateOne(*updateOne)
+	case *updateAll:
+		err = s.UpdateAll()
+	case *updatePeople:
+		err = s.SyncPersons(true)
+	default:
+		err = s.Run()
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 	if !*skipIndexUpdate {
 		if err := s.Save(); err != nil {
