@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"log"
@@ -62,7 +63,7 @@ func (s *SyncApp) Run() error {
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
 	s.LastRun = time.Now().UTC().Truncate(time.Second)
-	err := s.SyncPersons(false)
+	err := s.SyncPersons()
 	if err != nil {
 		return err
 	}
@@ -164,7 +165,7 @@ func main() {
 	case *updateAll:
 		err = s.UpdateAll()
 	case *updatePeople:
-		err = s.SyncPersons(true)
+		err = s.UpdateActive(context.Background())
 	default:
 		err = s.Run()
 	}

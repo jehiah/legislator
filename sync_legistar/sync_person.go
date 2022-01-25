@@ -11,17 +11,11 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-func (s *SyncApp) SyncPersons(all bool) error {
+func (s *SyncApp) SyncPersons() error {
 	ctx := context.Background()
-	var persons []legistar.Person
-	var err error
-	if all {
-		persons, err = s.legistar.Persons(ctx, nil)
-	} else {
-		persons, err = s.legistar.Persons(ctx,
-			legistar.PersonLastModifiedFilter(s.LastSync.Persons),
-		)
-	}
+	persons, err := s.legistar.Persons(ctx,
+		legistar.PersonLastModifiedFilter(s.LastSync.Persons),
+	)
 	if err != nil {
 		return err
 	}
@@ -60,7 +54,6 @@ func (s *SyncApp) SyncPersons(all bool) error {
 		if err := s.writeFile(filepath.Join("people", record.Slug+".json"), record); err != nil {
 			return err
 		}
-		time.Sleep(50 * time.Millisecond)
 	}
 	if len(persons) > 0 {
 		s.LastSync.Persons = db.Max(persons, func(i int) time.Time { return persons[i].LastModified.Time })
@@ -85,5 +78,51 @@ func (s *SyncApp) LoadPersons() error {
 		s.personLookup[p.ID] = p
 	}
 	log.Printf("loaded %d people", len(s.personLookup))
+	return nil
+}
+
+func (s *SyncApp) UpdateActive(ctx context.Context) error {
+	for _, p := range s.personLookup {
+		if !p.IsActive {
+			continue
+		}
+		err := s.UpdatePersonID(ctx, p.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *SyncApp) UpdatePersonID(ctx context.Context, id int) error {
+	p, err := s.legistar.Person(ctx, id)
+	if err != nil {
+		return err
+	}
+	return s.UpdatePerson(ctx, p)
+}
+
+func (s *SyncApp) UpdatePerson(ctx context.Context, p legistar.Person) error {
+	officeRecords, err := s.legistar.PersonOfficeRecords(ctx, p.ID)
+	if err != nil {
+		return err
+	}
+	record := db.NewPerson(p, officeRecords)
+
+	// if the name has changed, remove the old one
+	if r, ok := s.personLookup[record.ID]; ok && r.Slug != p.Slug() {
+		// name changed
+		err = s.removeFile(filepath.Join("people", r.Slug+".json"))
+		if err != nil {
+			return err
+		}
+		// TODO: update existing references
+	}
+
+	s.personLookup[record.ID] = record
+
+	if err := s.writeFile(filepath.Join("people", record.Slug+".json"), record); err != nil {
+		return err
+	}
 	return nil
 }
