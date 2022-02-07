@@ -77,12 +77,22 @@ GET v1/{Client}/VoteTypes
 
 
 GET v1/{Client}/OfficeRecords
+	http://127.0.0.1:7001/OfficeRecords?$filter=OfficeRecordLastModifiedUtc+ge+datetime%272022-01-01%27
+
 GET v1/{Client}/Persons/{PersonId}/OfficeRecords
 	http://127.0.0.1:7001/Persons/7631/OfficeRecords
 		OfficeRecordStartDate -> OfficeRecordEndDate	
 
 GET v1/{Client}/Events	
 GET v1/{Client}/Events/{EventId}
+	http://127.0.0.1:7001/Events?$filter=EventDate+ge+datetime%272022-01-01%27
+	http://127.0.0.1:7001/Events/19019?EventItems=1&AgendaNode=1&MinutesNote=1&EventItemAttachments=1
+	
+	// GET v1/{Client}/EventDates/{BodyId}?FutureDatesOnly={FutureDatesOnly}	
+	//	GET v1/{Client}/Events/{EventId}?EventItems={EventItems}&AgendaNote={AgendaNote}&MinutesNote={MinutesNote}&EventItemAttachments={EventItemAttachments}	
+
+	http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1
+
 
 GET v1/{Client}/Actions	
 	http://127.0.0.1:7001/Actions?$filter=ActionLastModifiedUtc+ge+datetime%272020-01-01%27

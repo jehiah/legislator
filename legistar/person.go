@@ -14,13 +14,28 @@ type Person struct {
 	GUID         string `json:"PersonGuid"`
 	ActiveFlag   int    `json:"PersonActiveFlag"`
 	Email        string `json:"PersonEmail"`
+	Email2       string `json:"PersonEmail2"`
 	LastModified Time   `json:"PersonLastModifiedUtc"`
 	FullName     string `json:"PersonFullName"`
 	FirstName    string `json:"PersonFirstName"`
 	LastName     string `json:"PersonLastName"`
 	WWW          string `json:"PersonWWW"`
+	WWW2         string `json:"PersonWWW2"`
 
 	// Address, City, State, Zip, Phone, Fax
+	Address1 string `json:"PersonAddress1"`
+	City1    string `json:"PersonCity1"`
+	State1   string `json:"PersonState1"`
+	Zip1     string `json:"PersonZip1"`
+	Phone    string `json:"PersonPhone"`
+	Fax      string `json:"PersonFax"`
+
+	Address2 string `json:"PersonAddress2"`
+	City2    string `json:"PersonCity2"`
+	State2   string `json:"PersonState2"`
+	Zip2     string `json:"PersonZip2"`
+	Phone2   string `json:"PersonPhone2"`
+	Fax2     string `json:"PersonFax2"`
 }
 
 type PersonLastModifiedFilter time.Time

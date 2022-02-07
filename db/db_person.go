@@ -24,6 +24,15 @@ type Person struct {
 	LastModified        time.Time
 	OfficeRecords       []OfficeRecord
 	Start, End          time.Time
+	DistrictOffice      Address `json:",omitempty"`
+	LegislativeOffice   Address `json:",omitempty"`
+}
+
+type Address struct {
+	Address string
+	City    string
+	State   string
+	Zip     string
 }
 
 func (p Person) Reference() PersonReference {
@@ -80,6 +89,18 @@ func NewPerson(p legistar.Person, o legistar.OfficeRecords) Person {
 		LastName:     p.LastName,
 		WWW:          p.WWW,
 		LastModified: p.LastModified.Time,
+		DistrictOffice: Address{
+			Address: p.Address1,
+			City:    p.City1,
+			State:   p.State1,
+			Zip:     p.Zip1,
+		},
+		LegislativeOffice: Address{
+			Address: p.Address2,
+			City:    p.City2,
+			State:   p.State2,
+			Zip:     p.Zip2,
+		},
 	}
 	for _, oo := range o {
 		v.OfficeRecords = append(v.OfficeRecords, NewOfficeRecord(oo))

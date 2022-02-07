@@ -66,14 +66,26 @@ func (c Client) Person(ctx context.Context, ID int) (Person, error) {
 	var p Person
 	return p, c.Call(ctx, fmt.Sprintf("/Persons/%d", ID), nil, &p)
 }
-func (c Client) PersonVotes(ctx context.Context, ID int) (Votes, error) {
-	// TODO: page
+func (c Client) PersonVotes(ctx context.Context, ID int, f Filters) (Votes, error) {
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
 	var v Votes
-	return v, c.Call(ctx, fmt.Sprintf("/Persons/%d/Votes", ID), nil, &v)
+	return v, c.Call(ctx, fmt.Sprintf("/Persons/%d/Votes", ID), p, &v)
 }
 func (c Client) PersonOfficeRecords(ctx context.Context, ID int) (OfficeRecords, error) {
 	var v OfficeRecords
 	return v, c.Call(ctx, fmt.Sprintf("/Persons/%d/OfficeRecords", ID), nil, &v)
+}
+
+func (c Client) PersonRollCalls(ctx context.Context, ID int, f Filters) (RollCalls, error) {
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	var v RollCalls
+	return v, c.Call(ctx, fmt.Sprintf("/Persons/%d/RollCalls", ID), p, &v)
 }
 
 func (c Client) OfficeRecords(ctx context.Context, f Filters) (OfficeRecords, error) {
