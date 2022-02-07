@@ -90,7 +90,7 @@ func (a *App) PersonVotes(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 
-	v, err := a.legistar.PersonVotes(r.Context(), p.ID)
+	v, err := a.legistar.PersonVotes(r.Context(), p.ID, nil)
 	if err != nil {
 		if legistar.IsNotFoundError(err) {
 			http.Error(w, "Not Found", 404)
