@@ -35,6 +35,14 @@ type Address struct {
 	Zip     string
 }
 
+func NewPersonReference(o legistar.MatterSponsor) PersonReference {
+	return PersonReference{
+		ID:       o.NameID,
+		FullName: o.Name,
+		Slug:     o.Slug(),
+	}
+}
+
 func (p Person) Reference() PersonReference {
 	return PersonReference{
 		ID:       p.ID,

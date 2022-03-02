@@ -171,6 +171,9 @@ func (s *SyncApp) updateMatter(ctx context.Context, l db.Legislation) error {
 	}
 	l.TextID = versions.LatestTextID()
 	txt, err := s.legistar.MatterText(ctx, l.ID, l.TextID)
+	if err != nil {
+		return err
+	}
 	l.Text = txt.SimplifiedText()
 	l.RTF = txt.SimplifiedRTF()
 

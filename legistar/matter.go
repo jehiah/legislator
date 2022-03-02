@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gosimple/slug"
 )
 
 // Matter
@@ -110,6 +112,11 @@ type MatterSponsor struct {
 	BodyID        int    `json:"MatterSponsorBodyId"`
 	LinkFlag      int    `json:"MatterSponsorLinkFlag"`
 }
+
+func (s MatterSponsor) Slug() string {
+	return slug.MakeLang(s.Name, "en")
+}
+
 type MatterSponsors []MatterSponsor
 
 // MatterType
