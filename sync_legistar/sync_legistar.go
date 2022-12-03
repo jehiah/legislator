@@ -13,6 +13,8 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
+var localTimezone *time.Location
+
 type SyncApp struct {
 	legistar  *legistar.Client
 	targetDir string
@@ -26,6 +28,7 @@ type SyncApp struct {
 type LastSync struct {
 	Matters time.Time
 	Persons time.Time
+	Events  time.Time
 
 	LastRun time.Time
 }
@@ -62,12 +65,17 @@ func (s *SyncApp) Run() error {
 	os.MkdirAll(s.targetDir, 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
+	os.MkdirAll(filepath.Join(s.targetDir, "events"), 0777)
 	s.LastRun = time.Now().UTC().Truncate(time.Second)
 	err := s.SyncPersons()
 	if err != nil {
 		return err
 	}
 	err = s.SyncMatter()
+	if err != nil {
+		return err
+	}
+	err = s.SyncEvents(nil)
 	if err != nil {
 		return err
 	}
@@ -138,9 +146,11 @@ func (s SyncApp) Save() error {
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	updatePeople := flag.Bool("update-people", false, "update all people")
 	updateOne := flag.String("update-one", "", "update one")
+	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
 	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
 	flag.Parse()
@@ -155,15 +165,21 @@ func main() {
 		targetDir:         *targetDir,
 	}
 
-	if err := s.Load(); err != nil {
+	var err error
+	localTimezone, err = time.LoadLocation(*timezone)
+	if err != nil {
 		log.Fatal(err)
 	}
-	var err error
+
+	if err = s.Load(); err != nil {
+		log.Fatal(err)
+	}
 	switch {
 	case *updateOne != "":
 		err = s.UpdateOne(*updateOne)
 	case *updateAll:
-		err = s.UpdateAll()
+		// err = s.UpdateAll()
+		err = s.SyncAllEvent()
 	case *updatePeople:
 		err = s.UpdateActive(context.Background())
 	default:

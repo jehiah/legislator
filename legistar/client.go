@@ -167,6 +167,32 @@ func (c Client) MatterIndexes(ctx context.Context) (MatterIndexes, error) {
 	return v, c.Call(ctx, "/MatterIndexes", nil, &v)
 }
 
+// Events
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-Events
+func (c Client) Events(ctx context.Context, f Filters) (Events, error) {
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	var v Events
+	return v, c.Call(ctx, "/Events", p, &v)
+}
+
+// EventItems
+// http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1
+func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
+	var v EventItems
+	err := c.Call(ctx, fmt.Sprintf("/Events/%d/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1", ID), nil, &v)
+	// TODO: sort
+	// sort.Slice(v, func(i, j int) bool {
+	// 	if v[i].ActionDate.Time.Equal(v[j].ActionDate.Time) {
+	// 		return v[i].ID < v[j].ID
+	// 	}
+	// 	return v[i].ActionDate.Time.Before(v[j].ActionDate.Time)
+	// })
+	return v, err
+}
+
 type apiError struct {
 	code    int
 	message string

@@ -1,5 +1,10 @@
 package legistar
 
+import (
+	"net/url"
+	"time"
+)
+
 type EventItem struct {
 	ID                int                          `json:"EventItemId"`
 	GUID              string                       `json:"EventItemGuid"`
@@ -37,6 +42,7 @@ type EventItem struct {
 	MatterStatus      string                       `json:"EventItemMatterStatus"`
 	MatterAttachments []EventItemMatterAttachments `json:"EventItemMatterAttachments"`
 }
+type EventItems []EventItem
 
 type EventItemMatterAttachments struct {
 	ID                   int    `json:"MatterAttachmentId"`
@@ -61,29 +67,45 @@ type EventItemMatterAttachments struct {
 
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-Events
 type Event struct {
-	ID                   int         `json:"EventId"`
-	GUID                 string      `json:"EventGuid"`
-	LastModified         Time        `json:"EventLastModifiedUtc"`
-	RowVersion           string      `json:"EventRowVersion"`
-	BodyID               int         `json:"EventBodyId"`
-	BodyName             string      `json:"EventBodyName"`
-	Date                 string      `json:"EventDate"`
-	Time                 string      `json:"EventTime"`
-	VideoStatus          string      `json:"EventVideoStatus"`
-	AgendaStatusID       int         `json:"EventAgendaStatusId"`
-	AgendaStatusName     string      `json:"EventAgendaStatusName"`
-	MinutesStatusID      int         `json:"EventMinutesStatusId"`
-	MinutesStatusName    string      `json:"EventMinutesStatusName"`
-	Location             string      `json:"EventLocation"`
-	AgendaFile           string      `json:"EventAgendaFile"`
-	MinutesFile          string      `json:"EventMinutesFile"`
-	AgendaLastPublished  string      `json:"EventAgendaLastPublishedUTC"`
-	MinutesLastPublished string      `json:"EventMinutesLastPublishedUTC"`
-	Comment              string      `json:"EventComment"`
-	VideoPath            string      `json:"EventVideoPath"`
-	Media                string      `json:"EventMedia"`
-	InSiteURL            string      `json:"EventInSiteURL"`
-	Items                []EventItem `json:"EventItems"`
+	ID                   int        `json:"EventId"`
+	GUID                 string     `json:"EventGuid"`
+	LastModified         Time       `json:"EventLastModifiedUtc"`
+	RowVersion           string     `json:"EventRowVersion"`
+	BodyID               int        `json:"EventBodyId"`
+	BodyName             string     `json:"EventBodyName"`
+	Date                 Time       `json:"EventDate"`
+	Time                 ShortTime  `json:"EventTime"`
+	VideoStatus          string     `json:"EventVideoStatus"`
+	AgendaStatusID       int        `json:"EventAgendaStatusId"`
+	AgendaStatusName     string     `json:"EventAgendaStatusName"`
+	MinutesStatusID      int        `json:"EventMinutesStatusId"`
+	MinutesStatusName    string     `json:"EventMinutesStatusName"`
+	Location             string     `json:"EventLocation"`
+	AgendaFile           string     `json:"EventAgendaFile"`
+	MinutesFile          string     `json:"EventMinutesFile"`
+	AgendaLastPublished  Time       `json:"EventAgendaLastPublishedUTC"`
+	MinutesLastPublished Time       `json:"EventMinutesLastPublishedUTC"`
+	Comment              string     `json:"EventComment"`
+	VideoPath            string     `json:"EventVideoPath"`
+	Media                string     `json:"EventMedia"`
+	InSiteURL            string     `json:"EventInSiteURL"`
+	Items                EventItems `json:"EventItems"`
+}
+type Events []Event
+
+type EventDateFilter struct {
+	Direction string
+	time.Time
+}
+
+func (p EventDateFilter) Paramters() url.Values {
+	return DateTimeFilter("EventDate", p.Direction, p.Time)
+}
+
+type EventLastModifiedFilter time.Time
+
+func (p EventLastModifiedFilter) Paramters() url.Values {
+	return DateTimeFilter("EventLastModifiedUtc", "gt", time.Time(p))
 }
 
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-EventItems-EventItemId-RollCalls
