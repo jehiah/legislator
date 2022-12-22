@@ -19,7 +19,7 @@ func EventFilename(event db.Event) string {
 }
 
 func (s *SyncApp) SyncAllEvent() error {
-	for year := 2018; year <= 2023; year++ {
+	for year := 2004; year <= 2004; year++ {
 		for month := time.January; month <= time.December; month++ {
 			start := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 			end := start.AddDate(0, 1, 1)
@@ -38,8 +38,8 @@ func (s *SyncApp) SyncAllEvent() error {
 
 func (s *SyncApp) SyncEvents(filter legistar.Filters) error {
 	if filter == nil {
-		// filter = legistar.EventLastModifiedFilter(s.LastSync.Events)
-		filter = legistar.EventLastModifiedFilter(time.Date(2022, 11, 1, 0, 0, 0, 0, time.UTC))
+		filter = legistar.EventLastModifiedFilter(s.LastSync.Events)
+		// filter = legistar.EventLastModifiedFilter(time.Date(2022, 11, 1, 0, 0, 0, 0, time.UTC))
 	}
 
 	ctx := context.Background()
