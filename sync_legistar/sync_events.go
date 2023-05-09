@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -18,6 +19,37 @@ func EventFilename(event db.Event) string {
 	return filepath.Join("events", strconv.Itoa(event.Date.Year()), fn)
 }
 
+func (s *SyncApp) LoadEvents() error {
+	files, err := filepath.Glob(filepath.Join(s.targetDir, "events", "*", "*.json"))
+	if err != nil {
+		return err
+	}
+	for _, fn := range files {
+		fn = strings.TrimPrefix(fn, s.targetDir+"/")
+		c := strings.FieldsFunc(fn, func(c rune) bool { return c == '_' || c == '.' })
+		id, err := strconv.Atoi(c[len(c)-2])
+		if err != nil {
+			return err
+		}
+		s.eventsLookup[id] = append(s.eventsLookup[id], fn)
+	}
+	log.Printf("loaded %d events", len(s.eventsLookup))
+	return nil
+}
+
+func (s *SyncApp) SyncDuplicateEvents() error {
+	ctx := context.Background()
+	for ID, v := range s.eventsLookup {
+		if len(v) != 1 {
+			err := s.SyncEvent(ctx, ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (s *SyncApp) SyncAllEvent() error {
 	for year := 2004; year <= 2004; year++ {
 		for month := time.January; month <= time.December; month++ {
@@ -32,6 +64,33 @@ func (s *SyncApp) SyncAllEvent() error {
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (s *SyncApp) SyncEvent(ctx context.Context, ID int) error {
+	event, err := s.legistar.Event(ctx, ID)
+	if err != nil {
+		return err
+	}
+	event.Items, err = s.legistar.EventItems(ctx, event.ID)
+	if err != nil {
+		return err
+	}
+	record := db.NewEvent(event, localTimezone)
+	fn := EventFilename(record)
+	for _, existingFile := range s.eventsLookup[event.ID] {
+		if existingFile == fn {
+			continue
+		}
+		// remove files where the name has changed
+		err := s.removeFile(existingFile)
+		if err != nil {
+			return err
+		}
+	}
+	if err := s.writeFile(fn, record); err != nil {
+		return err
 	}
 	return nil
 }
@@ -55,7 +114,18 @@ func (s *SyncApp) SyncEvents(filter legistar.Filters) error {
 			return err
 		}
 		record := db.NewEvent(event, localTimezone)
-		if err := s.writeFile(EventFilename(record), record); err != nil {
+		fn := EventFilename(record)
+		for _, existingFile := range s.eventsLookup[event.ID] {
+			if existingFile == fn {
+				continue
+			}
+			// remove files where the name has changed
+			err := s.removeFile(existingFile)
+			if err != nil {
+				return err
+			}
+		}
+		if err := s.writeFile(fn, record); err != nil {
 			return err
 		}
 	}
@@ -63,9 +133,5 @@ func (s *SyncApp) SyncEvents(filter legistar.Filters) error {
 		s.LastSync.Events = db.Max(events, func(i int) time.Time { return events[i].LastModified.Time })
 	}
 
-	return nil
-}
-
-func (s *SyncApp) LoadEvents() error {
 	return nil
 }

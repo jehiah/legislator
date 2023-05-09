@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/jehiah/legislator/db"
@@ -21,6 +22,7 @@ type SyncApp struct {
 
 	personLookup      map[int]db.Person
 	legislationLookup map[string]bool
+	eventsLookup      map[int][]string
 
 	LastSync
 }
@@ -55,6 +57,10 @@ func (s *SyncApp) Load() error {
 		return err
 	}
 	err = s.LoadMatter()
+	if err != nil {
+		return err
+	}
+	err = s.LoadEvents()
 	if err != nil {
 		return err
 	}
@@ -111,6 +117,7 @@ func (s SyncApp) writeFile(fn string, o interface{}) error {
 
 func (s SyncApp) removeFile(fn string) error {
 	fn = filepath.Join(s.targetDir, fn)
+	log.Printf("removing %s", fn)
 	err := os.Remove(fn)
 	if err != nil && !os.IsNotExist(err) {
 		return err
@@ -150,6 +157,7 @@ func main() {
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	updatePeople := flag.Bool("update-people", false, "update all people")
 	updateOne := flag.String("update-one", "", "update one")
+	updateEvent := flag.String("update-event", "", "the ID of an event to update")
 	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
 	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
@@ -162,8 +170,10 @@ func main() {
 		legistar:          legistar.NewClient("nyc", os.Getenv("NYC_LEGISLATOR_TOKEN")),
 		personLookup:      make(map[int]db.Person),
 		legislationLookup: make(map[string]bool),
+		eventsLookup:      make(map[int][]string),
 		targetDir:         *targetDir,
 	}
+	ctx := context.Background()
 
 	var err error
 	localTimezone, err = time.LoadLocation(*timezone)
@@ -177,11 +187,18 @@ func main() {
 	switch {
 	case *updateOne != "":
 		err = s.UpdateOne(*updateOne)
+	case *updateEvent != "":
+		id, err := strconv.Atoi(*updateEvent)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = s.SyncEvent(ctx, id)
 	case *updateAll:
 		// err = s.UpdateAll()
-		err = s.SyncAllEvent()
+		// err = s.SyncAllEvent()
+		err = s.SyncDuplicateEvents()
 	case *updatePeople:
-		err = s.UpdateActive(context.Background())
+		err = s.UpdateActive(ctx)
 	default:
 		err = s.Run()
 	}

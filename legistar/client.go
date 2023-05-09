@@ -178,6 +178,14 @@ func (c Client) Events(ctx context.Context, f Filters) (Events, error) {
 	return v, c.Call(ctx, "/Events", p, &v)
 }
 
+// Event
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-Events-EventId_EventItems_AgendaNote_MinutesNote_EventItemAttachments
+func (c Client) Event(ctx context.Context, ID int) (Event, error) {
+	var v Event
+	return v, c.Call(ctx, fmt.Sprintf("/Events/%d", ID), nil, &v)
+}
+
+
 // EventItems
 // http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1
 func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
