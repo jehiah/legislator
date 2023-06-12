@@ -1,5 +1,7 @@
 package legistar
 
+import "github.com/gosimple/slug"
+
 // http://webapi.legistar.com/Help/ResourceModel?modelName=GranicusVote
 type Vote struct {
 	ID           int    `json:"VoteId"`
@@ -10,10 +12,14 @@ type Vote struct {
 	LastModified Time   `json:"VoteLastModifiedUtc"`
 	RowVersion   []byte `json:"VoteRowVersion"`
 
-	Result    int    `json:"VoteResult"`
+	Result    int    `json:"VoteResult"` // 1=Afirmative, 2=Negative
 	ValueID   int    `json:"VoteValueId"`
-	ValueName string `json:"VoteValueName"` // i.e. Affirmative
+	ValueName string `json:"VoteValueName"` // i.e. Affirmative, Negative, ABsent
 	Sort      int    `json:"VoteSort"`
+}
+
+func (s Vote) Slug() string {
+	return slug.MakeLang(s.PersonName, "en")
 }
 
 type Votes []Vote

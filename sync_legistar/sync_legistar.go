@@ -156,7 +156,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	updatePeople := flag.Bool("update-people", false, "update all people")
-	updateOne := flag.String("update-one", "", "update one")
+	updateMatter := flag.String("update-matter", "", "File of matter to update i.e. 1234-2020")
 	updateEvent := flag.String("update-event", "", "the ID of an event to update")
 	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
@@ -185,8 +185,8 @@ func main() {
 		log.Fatal(err)
 	}
 	switch {
-	case *updateOne != "":
-		err = s.UpdateOne(*updateOne)
+	case *updateMatter != "":
+		err = s.UpdateMatterByFile(*updateMatter)
 	case *updateEvent != "":
 		id, err := strconv.Atoi(*updateEvent)
 		if err != nil {

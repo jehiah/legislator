@@ -1,6 +1,7 @@
 package db
 
 import (
+	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/legistar"
@@ -169,4 +170,47 @@ type EventItemMatterAttachments struct {
 	PrintWithReports     bool
 	Sort                 int
 	LastModified         time.Time
+}
+
+type RollCall struct {
+	ID           int
+	GUID         string
+	LastModified time.Time
+	Person       PersonReference
+
+	ValueID   int    `json:",omitempty"`
+	ValueName string `json:",omitempty"`
+	Sort      int    `json:",omitempty"`
+	Result    int    `json:",omitempty"`
+}
+
+type Vote struct {
+	PersonReference
+	VoteID int
+	Vote   string // Afffirmative, Negative, Absent
+	Result int    `json:",omitempty"` // 1 = Afirmative, 2 = Negative
+	Sort   int
+}
+type Votes []Vote
+
+func NewVotes(v legistar.Votes) Votes {
+	var o Votes
+	for _, vv := range v {
+		o = append(o, NewVote(vv))
+	}
+	return o
+}
+
+func NewVote(v legistar.Vote) Vote {
+	return Vote{
+		PersonReference: PersonReference{
+			FullName: strings.TrimSpace(v.PersonName),
+			ID:       v.PersonID,
+			Slug:     v.Slug(),
+		},
+		VoteID: v.ValueID,
+		Vote:   v.ValueName,
+		Result: v.Result,
+		Sort:   v.Sort,
+	}
 }

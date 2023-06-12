@@ -185,7 +185,6 @@ func (c Client) Event(ctx context.Context, ID int) (Event, error) {
 	return v, c.Call(ctx, fmt.Sprintf("/Events/%d", ID), nil, &v)
 }
 
-
 // EventItems
 // http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1
 func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
@@ -199,6 +198,24 @@ func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
 	// 	return v[i].ActionDate.Time.Before(v[j].ActionDate.Time)
 	// })
 	return v, err
+}
+
+// EventRollCalls
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-EventItems-EventItemId-RollCalls
+func (c Client) EventRollCalls(ctx context.Context, ID int, f Filters) (RollCalls, error) {
+	var p url.Values
+	if f != nil {
+		p = f.Paramters()
+	}
+	var v RollCalls
+	return v, c.Call(ctx, fmt.Sprintf("/EventItems/%d/RollCalls", ID), p, &v)
+}
+
+// EventVotes
+// http://webapi.legistar.com/Help/Api/GET-v1-Client-EventItems-EventItemId-Votes
+func (c Client) EventVotes(ctx context.Context, ID int) (Votes, error) {
+	var v Votes
+	return v, c.Call(ctx, fmt.Sprintf("/EventItems/%d/Votes", ID), nil, &v)
 }
 
 type apiError struct {

@@ -68,7 +68,8 @@ func (s *SyncApp) SyncMatter() error {
 	return nil
 }
 
-func (s *SyncApp) UpdateOne(q string) error {
+// UpdateMatterByFile expects format 1234-2020
+func (s *SyncApp) UpdateMatterByFile(q string) error {
 	ctx := context.Background()
 	file := fmt.Sprintf("Int %s", q)
 	filter := legistar.AndFilters(
@@ -153,7 +154,15 @@ func (s *SyncApp) updateMatter(ctx context.Context, l db.Legislation) error {
 	}
 	l.History = nil
 	for _, mh := range history {
-		l.History = append(l.History, db.NewHistory(mh))
+		hh := db.NewHistory(mh)
+		if hh.PassedFlagName != "" {
+			votes, err := s.legistar.EventVotes(ctx, hh.ID)
+			if err != nil {
+				return err
+			}
+			hh.Votes = db.NewVotes(votes)
+		}
+		l.History = append(l.History, hh)
 	}
 
 	attachments, err := s.legistar.MatterAttachments(ctx, l.ID)

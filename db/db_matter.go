@@ -100,8 +100,8 @@ type History struct {
 	AgendaNote      string `json:",omitempty"`
 	MinutesNote     string `json:",omitempty"`
 
-	PassedFlag     int    `json:",omitempty"`
-	PassedFlagName string `json:",omitempty"`
+	PassedFlag     int    `json:",omitempty"` // Note: 0 may indicate a vote that failed
+	PassedFlagName string `json:",omitempty"` // Pass, Fail
 	RollCallFlag   int    `json:",omitempty"`
 	FlagExtra      int    `json:",omitempty"`
 	Tally          string `json:",omitempty"`
@@ -112,6 +112,8 @@ type History struct {
 	SeconderID     int    `json:",omitempty"`
 	SeconderName   string `json:",omitempty"`
 	MatterStatusID int
+
+	Votes []Vote `json:",omitempty"`
 
 	LastModified time.Time
 }
