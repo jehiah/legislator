@@ -87,7 +87,7 @@ func (s *SyncApp) UpdateMatterByFile(q string) error {
 	return s.UpdateMatter(ctx, matters[0].ID)
 }
 
-func (s *SyncApp) UpdateAll() error {
+func (s *SyncApp) UpdateAllMatter() error {
 	ctx := context.Background()
 	for fn := range s.legislationLookup {
 		var l *db.Legislation
@@ -95,9 +95,31 @@ func (s *SyncApp) UpdateAll() error {
 		if err != nil {
 			return err
 		}
+
+		// TEMP
+		update := false
+		cutoffLow := time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)
+		cutoffHigh := time.Date(2008, 1, 1, 0, 0, 0, 0, time.UTC)
+		for _, h := range l.History {
+			if h.PassedFlagName != "" {
+				update = true
+			}
+		}
+		if l.IntroDate.Before(cutoffLow) || l.IntroDate.After(cutoffHigh) {
+			update = false
+		}
+		if l.File == "Int 0683-2015" {
+			update = false
+		}
+		if !update {
+			continue
+		}
+
 		err = s.UpdateMatterWithRetry(ctx, l.ID)
 		if err != nil {
-			return err
+			log.Printf("Got error after retry; sleeping 30s and skipping %s %s", l.File, err)
+			time.Sleep(time.Second * 30)
+			// return err
 		}
 
 	}
@@ -155,10 +177,19 @@ func (s *SyncApp) updateMatter(ctx context.Context, l db.Legislation) error {
 	l.History = nil
 	for _, mh := range history {
 		hh := db.NewHistory(mh)
-		if hh.PassedFlagName != "" {
+		// For some older entries spuriously have PassedFlagName=Fail where the API call to get votes errors
+		// 27 == "Introduced by Council"
+		// 53 == "Sent to Mayor by Council"
+		// 5014 == "Hearing Held by Mayor"
+		// 5023 == "Recved from Mayor by Council"
+		if hh.PassedFlagName != "" && hh.ActionID != 53 && hh.ActionID != 5014 && hh.ActionID != 5023 && hh.ActionID != 27 {
 			votes, err := s.legistar.EventVotes(ctx, hh.ID)
 			if err != nil {
-				return err
+				if hh.PassedFlagName == "Failed" || hh.ID == 283777 {
+					log.Printf("warning getting votes for eventID %v - PassedFlagName:Failed is a known bug on older records", hh.ID)
+				} else {
+					return err
+				}
 			}
 			hh.Votes = db.NewVotes(votes)
 		}

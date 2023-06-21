@@ -85,6 +85,7 @@ type EventItem struct {
 	PassedFlag        int                          `json:",omitempty"`
 	PassedFlagName    string                       `json:",omitempty"`
 	RollCallFlag      int                          `json:",omitempty"`
+	RollCall          RollCalls                    `json:",omitempty"`
 	FlagExtra         int                          `json:",omitempty"`
 	Tally             string                       `json:",omitempty"`
 	AccelaRecordID    string                       `json:",omitempty"`
@@ -173,44 +174,32 @@ type EventItemMatterAttachments struct {
 }
 
 type RollCall struct {
-	ID           int
-	GUID         string
-	LastModified time.Time
-	Person       PersonReference
-
-	ValueID   int    `json:",omitempty"`
-	ValueName string `json:",omitempty"`
-	Sort      int    `json:",omitempty"`
-	Result    int    `json:",omitempty"`
-}
-
-type Vote struct {
 	PersonReference
-	VoteID int
-	Vote   string // Afffirmative, Negative, Absent
-	Result int    `json:",omitempty"` // 1 = Afirmative, 2 = Negative
-	Sort   int
+	ValueID int    `json:",omitempty"`
+	Value   string `json:",omitempty"` // Present
+	Sort    int    `json:",omitempty"`
+	Result  int    `json:",omitempty"`
 }
-type Votes []Vote
+type RollCalls []RollCall
 
-func NewVotes(v legistar.Votes) Votes {
-	var o Votes
+func NewRollCalls(v legistar.RollCalls) RollCalls {
+	var o RollCalls
 	for _, vv := range v {
-		o = append(o, NewVote(vv))
+		o = append(o, NewRollCall(vv))
 	}
 	return o
 }
 
-func NewVote(v legistar.Vote) Vote {
-	return Vote{
+func NewRollCall(v legistar.RollCall) RollCall {
+	return RollCall{
 		PersonReference: PersonReference{
 			FullName: strings.TrimSpace(v.PersonName),
 			ID:       v.PersonID,
 			Slug:     v.Slug(),
 		},
-		VoteID: v.ValueID,
-		Vote:   v.ValueName,
-		Result: v.Result,
-		Sort:   v.Sort,
+		ValueID: v.ValueID,
+		Value:   v.ValueName,
+		Result:  v.Result,
+		Sort:    v.Sort,
 	}
 }

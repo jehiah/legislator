@@ -3,6 +3,8 @@ package legistar
 import (
 	"net/url"
 	"time"
+
+	"github.com/gosimple/slug"
 )
 
 type EventItem struct {
@@ -123,3 +125,7 @@ type RollCall struct {
 	EventItemID  int    `json:"RollCallEventItemId"`
 }
 type RollCalls []RollCall
+
+func (s RollCall) Slug() string {
+	return slug.MakeLang(s.PersonName, "en")
+}

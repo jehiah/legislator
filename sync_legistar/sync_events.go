@@ -37,6 +37,36 @@ func (s *SyncApp) LoadEvents() error {
 	return nil
 }
 
+func (s *SyncApp) SyncRollCalls() error {
+	ctx := context.Background()
+	for ID, fns := range s.eventsLookup {
+		var update bool
+		fn := fns[0]
+
+		var e *db.Event
+		err := s.readFile(fn, &e)
+		if err != nil {
+			return err
+		}
+		if e.Date.Before(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)) {
+			continue
+		}
+		for _, i := range e.Items {
+			if i.RollCallFlag != 0 {
+				update = true
+				break
+			}
+		}
+		if update {
+			err = s.SyncEvent(ctx, ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (s *SyncApp) SyncDuplicateEvents() error {
 	ctx := context.Background()
 	for ID, v := range s.eventsLookup {
@@ -78,6 +108,18 @@ func (s *SyncApp) SyncEvent(ctx context.Context, ID int) error {
 		return err
 	}
 	record := db.NewEvent(event, localTimezone)
+
+	for i, v := range record.Items {
+		if v.RollCallFlag == 0 {
+			continue
+		}
+		rc, err := s.legistar.EventRollCalls(ctx, v.ID)
+		if err != nil {
+			return err
+		}
+		record.Items[i].RollCall = db.NewRollCalls(rc)
+	}
+
 	fn := EventFilename(record)
 	for _, existingFile := range s.eventsLookup[event.ID] {
 		if existingFile == fn {

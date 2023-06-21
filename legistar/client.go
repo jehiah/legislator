@@ -202,13 +202,9 @@ func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
 
 // EventRollCalls
 // http://webapi.legistar.com/Help/Api/GET-v1-Client-EventItems-EventItemId-RollCalls
-func (c Client) EventRollCalls(ctx context.Context, ID int, f Filters) (RollCalls, error) {
-	var p url.Values
-	if f != nil {
-		p = f.Paramters()
-	}
+func (c Client) EventRollCalls(ctx context.Context, ID int) (RollCalls, error) {
 	var v RollCalls
-	return v, c.Call(ctx, fmt.Sprintf("/EventItems/%d/RollCalls", ID), p, &v)
+	return v, c.Call(ctx, fmt.Sprintf("/EventItems/%d/RollCalls", ID), nil, &v)
 }
 
 // EventVotes
@@ -239,6 +235,9 @@ func (c Client) Call(ctx context.Context, endpoint string, params url.Values, da
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*45)
+	defer cancel()
 
 	h := c.HttpClient
 	if h == nil {

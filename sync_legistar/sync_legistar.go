@@ -194,9 +194,10 @@ func main() {
 		}
 		err = s.SyncEvent(ctx, id)
 	case *updateAll:
-		// err = s.UpdateAll()
+		// err = s.UpdateAllMatter()
 		// err = s.SyncAllEvent()
-		err = s.SyncDuplicateEvents()
+		// err = s.SyncDuplicateEvents()
+		err = s.SyncRollCalls()
 	case *updatePeople:
 		err = s.UpdateActive(ctx)
 	default:
