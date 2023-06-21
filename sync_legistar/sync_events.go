@@ -156,6 +156,18 @@ func (s *SyncApp) SyncEvents(filter legistar.Filters) error {
 			return err
 		}
 		record := db.NewEvent(event, localTimezone)
+
+		for i, v := range record.Items {
+			if v.RollCallFlag == 0 {
+				continue
+			}
+			rc, err := s.legistar.EventRollCalls(ctx, v.ID)
+			if err != nil {
+				return err
+			}
+			record.Items[i].RollCall = db.NewRollCalls(rc)
+		}
+
 		fn := EventFilename(record)
 		for _, existingFile := range s.eventsLookup[event.ID] {
 			if existingFile == fn {
