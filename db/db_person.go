@@ -1,6 +1,7 @@
 package db
 
 import (
+	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/legistar"
@@ -38,7 +39,7 @@ type Address struct {
 func NewPersonReference(o legistar.MatterSponsor) PersonReference {
 	return PersonReference{
 		ID:       o.NameID,
-		FullName: o.Name,
+		FullName: strings.TrimSpace(o.Name),
 		Slug:     o.Slug(),
 	}
 }
@@ -47,7 +48,7 @@ func (p Person) Reference() PersonReference {
 	return PersonReference{
 		ID:       p.ID,
 		Slug:     p.Slug,
-		FullName: p.FullName,
+		FullName: strings.TrimSpace(p.FullName),
 	}
 }
 
@@ -77,7 +78,7 @@ func NewOfficeRecord(o legistar.OfficeRecord) OfficeRecord {
 		MemberType:   o.MemberType,
 		MemberTypeID: o.MemberTypeID,
 		Title:        o.Title,
-		FullName:     o.FullName,
+		FullName:     strings.TrimSpace(o.FullName),
 		PersonID:     o.PersonID,
 		Start:        o.StartDate.Time,
 		End:          o.EndDate.Time,
@@ -92,7 +93,7 @@ func NewPerson(p legistar.Person, o legistar.OfficeRecords) Person {
 		Slug:         p.Slug(),
 		IsActive:     p.ActiveFlag == 1,
 		Email:        p.Email,
-		FullName:     p.FullName,
+		FullName:     strings.TrimSpace(p.FullName),
 		FirstName:    p.FirstName,
 		LastName:     p.LastName,
 		WWW:          p.WWW,
