@@ -22,6 +22,7 @@ type SyncApp struct {
 
 	personLookup      map[int]db.Person
 	legislationLookup map[string]bool
+	landUseLookup     map[string]bool
 	eventsLookup      map[int][]string
 
 	LastSync
@@ -31,6 +32,7 @@ type LastSync struct {
 	Matters time.Time
 	Persons time.Time
 	Events  time.Time
+	LandUse time.Time
 
 	LastRun time.Time
 }
@@ -56,11 +58,15 @@ func (s *SyncApp) Load() error {
 	if err != nil {
 		return err
 	}
-	err = s.LoadMatter()
+	err = s.LoadLegislation()
 	if err != nil {
 		return err
 	}
 	err = s.LoadEvents()
+	if err != nil {
+		return err
+	}
+	err = s.LoadLandUse()
 	if err != nil {
 		return err
 	}
@@ -77,11 +83,15 @@ func (s *SyncApp) Run() error {
 	if err != nil {
 		return err
 	}
-	err = s.SyncMatter()
+	err = s.SyncLegislation()
 	if err != nil {
 		return err
 	}
 	err = s.SyncEvents(nil)
+	if err != nil {
+		return err
+	}
+	err = s.SyncLandUse()
 	if err != nil {
 		return err
 	}
@@ -156,7 +166,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	updatePeople := flag.Bool("update-people", false, "update all people")
-	updateMatter := flag.String("update-matter", "", "File of matter to update i.e. 1234-2020")
+	updateLegislation := flag.String("update-legislation", "", "File of legislation to update i.e. 1234-2020")
 	updateEvent := flag.String("update-event", "", "the ID of an event to update")
 	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
@@ -170,6 +180,7 @@ func main() {
 		legistar:          legistar.NewClient("nyc", os.Getenv("NYC_LEGISLATOR_TOKEN")),
 		personLookup:      make(map[int]db.Person),
 		legislationLookup: make(map[string]bool),
+		landUseLookup:     make(map[string]bool),
 		eventsLookup:      make(map[int][]string),
 		targetDir:         *targetDir,
 	}
@@ -185,8 +196,8 @@ func main() {
 		log.Fatal(err)
 	}
 	switch {
-	case *updateMatter != "":
-		err = s.UpdateMatterByFile(*updateMatter)
+	case *updateLegislation != "":
+		err = s.UpdateLegislationByFile(*updateLegislation)
 	case *updateEvent != "":
 		id, err := strconv.Atoi(*updateEvent)
 		if err != nil {
@@ -194,7 +205,7 @@ func main() {
 		}
 		err = s.SyncEvent(ctx, id)
 	case *updateAll:
-		// err = s.UpdateAllMatter()
+		// err = s.UpdateAllLegislation()
 		// err = s.SyncAllEvent()
 		// err = s.SyncDuplicateEvents()
 		err = s.SyncRollCalls()
