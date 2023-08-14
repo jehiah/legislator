@@ -23,16 +23,18 @@ type SyncApp struct {
 	personLookup      map[int]db.Person
 	legislationLookup map[string]bool
 	landUseLookup     map[string]bool
+	resolutionLookkup map[string]bool
 	eventsLookup      map[int][]string
 
 	LastSync
 }
 
 type LastSync struct {
-	Matters time.Time
-	Persons time.Time
-	Events  time.Time
-	LandUse time.Time
+	Matters    time.Time
+	Persons    time.Time
+	Events     time.Time
+	LandUse    time.Time
+	Resolution time.Time
 
 	LastRun time.Time
 }
@@ -70,6 +72,10 @@ func (s *SyncApp) Load() error {
 	if err != nil {
 		return err
 	}
+	err = s.LoadResolution()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -77,6 +83,8 @@ func (s *SyncApp) Run() error {
 	os.MkdirAll(s.targetDir, 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
+	os.MkdirAll(filepath.Join(s.targetDir, "land_use"), 0777)
+	os.MkdirAll(filepath.Join(s.targetDir, "resolution"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "events"), 0777)
 	s.LastRun = time.Now().UTC().Truncate(time.Second)
 	err := s.SyncPersons()
@@ -92,6 +100,10 @@ func (s *SyncApp) Run() error {
 		return err
 	}
 	err = s.SyncLandUse()
+	if err != nil {
+		return err
+	}
+	err = s.SyncResolution()
 	if err != nil {
 		return err
 	}
@@ -181,6 +193,7 @@ func main() {
 		personLookup:      make(map[int]db.Person),
 		legislationLookup: make(map[string]bool),
 		landUseLookup:     make(map[string]bool),
+		resolutionLookkup: make(map[string]bool),
 		eventsLookup:      make(map[int][]string),
 		targetDir:         *targetDir,
 	}
@@ -208,7 +221,8 @@ func main() {
 		// err = s.UpdateAllLegislation()
 		// err = s.SyncAllEvent()
 		// err = s.SyncDuplicateEvents()
-		err = s.SyncRollCalls()
+		// err = s.SyncRollCalls()
+		err = s.SyncResolution()
 	case *updatePeople:
 		err = s.UpdateActive(ctx)
 	default:

@@ -13,15 +13,15 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-func LandUseFilename(m db.Legislation) string {
+func ResolutionFilename(m db.Legislation) string {
 	fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
-	return filepath.Join("land_use", strconv.Itoa(m.IntroDate.Year()), fn)
+	return filepath.Join("resolution", strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
-func (s *SyncApp) SyncLandUse() error {
+func (s *SyncApp) SyncResolution() error {
 	ctx := context.Background()
 	filter := legistar.AndFilters(
-		legistar.MatterLastModifiedFilter(s.LastSync.LandUse),
+		// legistar.MatterLastModifiedFilter(s.LastSync.Resolution),
 		legistar.MatterTypeFilter("Land Use Application"),
 		MatterDateYearFilter{time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
 		// MatterDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
@@ -38,9 +38,9 @@ func (s *SyncApp) SyncLandUse() error {
 			continue
 		}
 		l := db.NewLegislation(m)
-		fn := LandUseFilename(l)
+		fn := ResolutionFilename(l)
 		s.legislationLookup[fn] = true
-		err = s.updateLandUse(ctx, l)
+		err = s.updateResolution(ctx, l)
 		if err != nil {
 			return err
 		}
@@ -52,13 +52,13 @@ func (s *SyncApp) SyncLandUse() error {
 	// }
 
 	if len(matters) > 0 {
-		s.LastSync.LandUse = db.Max(matters, func(i int) time.Time { return matters[i].LastModified.Time })
+		s.LastSync.Resolution = db.Max(matters, func(i int) time.Time { return matters[i].LastModified.Time })
 	}
 	return nil
 }
 
 // UpdateMatterByFile expects format 1234-2020
-func (s *SyncApp) UpdateLandUseByFile(q string) error {
+func (s *SyncApp) UpdateResolutionByFile(q string) error {
 	ctx := context.Background()
 	file := fmt.Sprintf("Int %s", q)
 	filter := legistar.AndFilters(
@@ -73,12 +73,12 @@ func (s *SyncApp) UpdateLandUseByFile(q string) error {
 	if len(matters) != 1 {
 		return fmt.Errorf("expected 1 response got %d for %q", len(matters), q)
 	}
-	return s.UpdateLandUse(ctx, matters[0].ID)
+	return s.UpdateResolution(ctx, matters[0].ID)
 }
 
-func (s *SyncApp) UpdateAllLandUse() error {
+func (s *SyncApp) UpdateAllResolution() error {
 	ctx := context.Background()
-	for fn := range s.landUseLookup {
+	for fn := range s.resolutionLookkup {
 		var l *db.Legislation
 		err := s.readFile(fn, &l)
 		if err != nil {
@@ -101,7 +101,7 @@ func (s *SyncApp) UpdateAllLandUse() error {
 			continue
 		}
 
-		err = s.UpdateLandUseWithRetry(ctx, l.ID)
+		err = s.UpdateResolutionWithRetry(ctx, l.ID)
 		if err != nil {
 			log.Printf("Got error after retry; sleeping 30s and skipping %s %s", l.File, err)
 			time.Sleep(time.Second * 30)
@@ -112,7 +112,7 @@ func (s *SyncApp) UpdateAllLandUse() error {
 	return nil
 }
 
-func (s *SyncApp) UpdateLandUseWithRetry(ctx context.Context, ID int) error {
+func (s *SyncApp) UpdateResolutionWithRetry(ctx context.Context, ID int) error {
 	m, err := s.legistar.Matter(ctx, ID)
 	if err != nil {
 		log.Print(err)
@@ -123,31 +123,31 @@ func (s *SyncApp) UpdateLandUseWithRetry(ctx context.Context, ID int) error {
 		return err
 	}
 	l := db.NewLegislation(m)
-	err = s.updateLandUse(ctx, l)
+	err = s.updateResolution(ctx, l)
 	if err != nil {
 		log.Print(err)
 		time.Sleep(time.Second)
-		err = s.updateLandUse(ctx, l)
+		err = s.updateResolution(ctx, l)
 	}
 	return err
 }
 
-func (s *SyncApp) UpdateLandUse(ctx context.Context, ID int) error {
+func (s *SyncApp) UpdateResolution(ctx context.Context, ID int) error {
 	m, err := s.legistar.Matter(ctx, ID)
 	if err != nil {
 		return err
 	}
 	l := db.NewLegislation(m)
-	return s.updateLandUse(ctx, l)
+	return s.updateResolution(ctx, l)
 }
 
-func (s *SyncApp) updateLandUse(ctx context.Context, l db.Legislation) error {
-	fn := LandUseFilename(l)
+func (s *SyncApp) updateResolution(ctx context.Context, l db.Legislation) error {
+	fn := ResolutionFilename(l)
 	return s.updateMatter(ctx, fn, l)
 }
 
-func (s *SyncApp) LoadLandUse() error {
-	files, err := filepath.Glob(filepath.Join(s.targetDir, "land_use", "*", "*.json"))
+func (s *SyncApp) LoadResolution() error {
+	files, err := filepath.Glob(filepath.Join(s.targetDir, "resolution", "*", "*.json"))
 	if err != nil {
 		return err
 	}
@@ -156,9 +156,9 @@ func (s *SyncApp) LoadLandUse() error {
 			continue
 		}
 		fn = strings.TrimPrefix(fn, s.targetDir+"/")
-		s.landUseLookup[fn] = true
+		s.resolutionLookkup[fn] = true
 	}
 
-	log.Printf("loaded %d land use files", len(s.landUseLookup))
+	log.Printf("loaded %d resolution files", len(s.resolutionLookkup))
 	return nil
 }
