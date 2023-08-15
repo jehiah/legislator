@@ -67,5 +67,8 @@ func (s *SyncApp) updateMatter(ctx context.Context, fn string, l db.Legislation)
 	l.Text = txt.SimplifiedText()
 	l.RTF = txt.SimplifiedRTF()
 
+	if len(l.RTF) > 51200 { // 50k
+		l.RTF = ""
+	}
 	return s.writeFile(fn, l)
 }
