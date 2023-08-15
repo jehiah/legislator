@@ -209,7 +209,7 @@ func NewVote(v legistar.Vote) Vote {
 			Slug:     v.Slug(),
 		},
 		VoteID: v.ValueID,
-		Vote:   v.ValueName,
+		Vote:   strings.TrimSpace(v.ValueName),
 		Result: v.Result,
 		Sort:   v.Sort,
 	}

@@ -27,6 +27,10 @@ func StringFilter(field, value string) url.Values {
 }
 
 func AndFilters(f ...Filters) Filters {
+	if ff, ok := f[0].(andFilters); ok {
+		ff.f = append(ff.f, f[1:]...)
+		return ff
+	}
 	return andFilters{f: f}
 }
 

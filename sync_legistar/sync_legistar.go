@@ -95,15 +95,16 @@ func (s *SyncApp) Run() error {
 	if err != nil {
 		return err
 	}
+
 	err = s.SyncEvents(nil)
 	if err != nil {
 		return err
 	}
-	err = s.SyncLandUse()
+	err = s.SyncLandUse(nil)
 	if err != nil {
 		return err
 	}
-	err = s.SyncResolution()
+	err = s.SyncResolution(nil)
 	if err != nil {
 		return err
 	}
@@ -222,7 +223,23 @@ func main() {
 		// err = s.SyncAllEvent()
 		// err = s.SyncDuplicateEvents()
 		// err = s.SyncRollCalls()
-		err = s.SyncResolution()
+
+		for year := 2021; year >= 2006; year-- {
+			filter := legistar.AndFilters(
+				MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+				MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
+			)
+			err = s.SyncLandUse(filter)
+			if err != nil {
+				break
+			}
+			err = s.SyncResolution(filter)
+			if err != nil {
+				break
+			}
+
+		}
+
 	case *updatePeople:
 		err = s.UpdateActive(ctx)
 	default:

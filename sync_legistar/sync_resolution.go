@@ -18,14 +18,19 @@ func ResolutionFilename(m db.Legislation) string {
 	return filepath.Join("resolution", strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
-func (s *SyncApp) SyncResolution() error {
+func (s *SyncApp) SyncResolution(filter legistar.Filters) error {
 	ctx := context.Background()
-	filter := legistar.AndFilters(
-		// legistar.MatterLastModifiedFilter(s.LastSync.Resolution),
-		legistar.MatterTypeFilter("Land Use Application"),
-		MatterDateYearFilter{time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
-		// MatterDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
-	)
+	if filter == nil {
+		filter = legistar.AndFilters(
+			legistar.MatterLastModifiedFilter(s.LastSync.Resolution),
+			legistar.MatterTypeFilter("Resolution"),
+		)
+	} else {
+		filter = legistar.AndFilters(
+			filter,
+			legistar.MatterTypeFilter("Resolution"),
+		)
+	}
 
 	matters, err := s.legistar.Matters(ctx, filter)
 	if err != nil {

@@ -18,14 +18,19 @@ func LandUseFilename(m db.Legislation) string {
 	return filepath.Join("land_use", strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
-func (s *SyncApp) SyncLandUse() error {
+func (s *SyncApp) SyncLandUse(filter legistar.Filters) error {
 	ctx := context.Background()
-	filter := legistar.AndFilters(
-		legistar.MatterLastModifiedFilter(s.LastSync.LandUse),
-		legistar.MatterTypeFilter("Land Use Application"),
-		MatterDateYearFilter{time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
-		// MatterDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
-	)
+	if filter == nil {
+		filter = legistar.AndFilters(
+			legistar.MatterLastModifiedFilter(s.LastSync.LandUse),
+			legistar.MatterTypeFilter("Land Use Application"),
+		)
+	} else {
+		filter = legistar.AndFilters(
+			filter,
+			legistar.MatterTypeFilter("Land Use Application"),
+		)
+	}
 
 	matters, err := s.legistar.Matters(ctx, filter)
 	if err != nil {
