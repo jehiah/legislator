@@ -164,13 +164,16 @@ type MatterText struct {
 func (t MatterText) SimplifiedText() string {
 	t.Plain = strings.ReplaceAll(t.Plain, "\r\n", "\n")
 	s := strings.Split(t.Plain, "\n")
+	o := s
 	for i, ss := range s {
+		if strings.HasPrefix(ss, "By Council Members") {
+			o = s[i+1:]
+		}
 		if strings.TrimSpace(strings.ToLower(ss)) == "..body" {
-			s = s[i+1:]
-			break
+			o = s[i+1:]
 		}
 	}
-	return strings.TrimSpace(strings.Join(s, "\n"))
+	return strings.TrimSpace(strings.Join(o, "\n"))
 }
 
 // SimplifiedRTF returns RTF without the "$file\nBy Councilmembers ...\n\n..Title:\n$title" preamble

@@ -5,6 +5,37 @@ import (
 	"testing"
 )
 
+func TestMatterText_SimplifiedText(t *testing.T) {
+	type testCase struct {
+		Plain, Expected string
+	}
+	tests := []testCase{
+		{
+			Plain: `
+Res. No. 730
+ 
+..Title
+Resolution supporting the mission and growth of the Climate Museum.
+..Body
+ 
+By Council Members Gennaro, Hanif, Cab�n, Richardson Jordan, Nurse, Riley and Williams
+ 
+	Whereas, According to the National Aeronautics and Space Administration, Earth&#39;s climate is changing at a rate not seen in the past 10,000 years: the global temperature is increasing, oceans are warming, sea levels are rising, ice and snow levels are decreasing, and the frequency of extreme weather events is increasing; and`,
+			Expected: `Whereas, According to the National Aeronautics and Space Administration, Earth&#39;s climate is changing at a rate not seen in the past 10,000 years: the global temperature is increasing, oceans are warming, sea levels are rising, ice and snow levels are decreasing, and the frequency of extreme weather events is increasing; and`,
+		},
+	}
+	for i, tc := range tests {
+		tc := tc
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			mt := &MatterText{Plain: tc.Plain}
+			if got := mt.SimplifiedText(); got != tc.Expected {
+				t.Errorf("got %q expected %q", got, tc.Expected)
+			}
+		})
+
+	}
+}
+
 func TestMatterText_SimplifiedRTF(t *testing.T) {
 	type testCase struct {
 		RTF, Expected string
