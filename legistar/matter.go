@@ -166,7 +166,7 @@ func (t MatterText) SimplifiedText() string {
 	s := strings.Split(t.Plain, "\n")
 	o := s
 	for i, ss := range s {
-		if strings.HasPrefix(ss, "By Council Members") {
+		if strings.HasPrefix(ss, "By Council Member") {
 			o = s[i+1:]
 		}
 		if strings.TrimSpace(strings.ToLower(ss)) == "..body" {
