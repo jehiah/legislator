@@ -167,11 +167,13 @@ func (s SyncApp) Save() error {
 		return err
 	}
 	defer f.Close()
-	b, err := json.Marshal(s.LastSync)
+	e := json.NewEncoder(f)
+	e.SetEscapeHTML(false)
+	e.SetIndent("", "  ")
+	err = e.Encode(s.LastSync)
 	if err != nil {
 		return err
 	}
-	f.Write(b)
 	return f.Close()
 }
 
