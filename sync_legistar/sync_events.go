@@ -67,6 +67,25 @@ func (s *SyncApp) SyncRollCalls() error {
 	return nil
 }
 
+func (s *SyncApp) SyncCurrentEvents() error {
+	ctx := context.Background()
+	for ID, v := range s.eventsLookup {
+		if len(v) == 1 && strings.HasPrefix(v[0], "events/2024/") {
+			// err := s.SyncEvent(ctx, ID)
+			// if err != nil {
+			// 	return err
+			// }
+
+			_, err := s.legistar.Event(ctx, ID)
+			if err != nil && legistar.IsNotFoundError(err) {
+				s.removeFile(v[0])
+			}
+
+		}
+	}
+	return nil
+}
+
 func (s *SyncApp) SyncDuplicateEvents() error {
 	ctx := context.Background()
 	for ID, v := range s.eventsLookup {
@@ -101,6 +120,12 @@ func (s *SyncApp) SyncAllEvent() error {
 func (s *SyncApp) SyncEvent(ctx context.Context, ID int) error {
 	event, err := s.legistar.Event(ctx, ID)
 	if err != nil {
+		if legistar.IsNotFoundError(err) {
+			for _, existingFile := range s.eventsLookup[ID] {
+				s.removeFile(existingFile)
+			}
+			return nil
+		}
 		return err
 	}
 	event.Items, err = s.legistar.EventItems(ctx, event.ID)

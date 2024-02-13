@@ -215,11 +215,15 @@ func main() {
 	case *updateLegislation != "":
 		err = s.UpdateLegislationByFile(*updateLegislation)
 	case *updateEvent != "":
-		id, err := strconv.Atoi(*updateEvent)
-		if err != nil {
-			log.Fatal(err)
+		if *updateEvent == "current" {
+			err = s.SyncCurrentEvents()
+		} else {
+			id, err := strconv.Atoi(*updateEvent)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = s.SyncEvent(ctx, id)
 		}
-		err = s.SyncEvent(ctx, id)
 	case *updateAll:
 		// err = s.UpdateAllLegislation()
 		// err = s.SyncAllEvent()

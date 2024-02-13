@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -269,7 +269,7 @@ func (c Client) Call(ctx context.Context, endpoint string, params url.Values, da
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		log.Printf("got %q %q for %s", resp.Status, string(body), resp.Request.URL.String())
 		return apiError{code: resp.StatusCode, message: resp.Status}
 	}
