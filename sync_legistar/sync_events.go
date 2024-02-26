@@ -133,8 +133,15 @@ func (s *SyncApp) SyncEvent(ctx context.Context, ID int) error {
 		return err
 	}
 	record := db.NewEvent(event, localTimezone)
+	record.InSiteURL = UpdateInSiteURL(s.legistar.LookupURL.Host, record.InSiteURL)
 
 	for i, v := range record.Items {
+		switch v.MatterType {
+		case "Introduction", "Resolution":
+			// zero this field because events don't get updated when it changes
+			// it's the "current" status
+			record.Items[i].MatterStatus = ""
+		}
 		if v.RollCallFlag == 0 {
 			continue
 		}
@@ -181,8 +188,15 @@ func (s *SyncApp) SyncEvents(filter legistar.Filters) error {
 			return err
 		}
 		record := db.NewEvent(event, localTimezone)
+		record.InSiteURL = UpdateInSiteURL(s.legistar.LookupURL.Host, record.InSiteURL)
 
 		for i, v := range record.Items {
+			switch v.MatterType {
+			case "Introduction", "Resolution":
+				// zero this field because events don't get updated when it changes
+				// it's the "current" status
+				record.Items[i].MatterStatus = ""
+			}
 			if v.RollCallFlag == 0 {
 				continue
 			}

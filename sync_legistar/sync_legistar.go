@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -200,6 +201,7 @@ func main() {
 		eventsLookup:      make(map[int][]string),
 		targetDir:         *targetDir,
 	}
+	s.legistar.LookupURL, _ = url.Parse("https://legistar.council.nyc.gov/gateway.aspx?m=l&id=")
 	ctx := context.Background()
 
 	var err error
@@ -230,7 +232,7 @@ func main() {
 		// err = s.SyncDuplicateEvents()
 		// err = s.SyncRollCalls()
 
-		for year := 2021; year >= 2006; year-- {
+		for year := 2024; year >= 2020; year-- {
 			// filter := legistar.AndFilters(
 			// 	MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
 			// 	MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
