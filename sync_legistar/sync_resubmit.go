@@ -39,8 +39,6 @@ func (s *SyncApp) loadResubmit() (map[string]*ResubmitFile, error) {
 	}
 	for _, fn := range files {
 		fn = strings.TrimPrefix(fn, s.targetDir+"/")
-		// log.Printf("loading %s", fn)
-
 		var f ResubmitFile
 		err := s.readFile(fn, &f)
 		if err != nil {
@@ -63,7 +61,6 @@ func (s Session) ContainsYear(n int) bool {
 }
 
 func (s SyncApp) Sessions() []Session {
-
 	var years []int
 	for fn := range s.legislationLookup {
 		if !strings.HasSuffix(fn, "/0001.json") {
@@ -77,18 +74,20 @@ func (s SyncApp) Sessions() []Session {
 		if i+1 > len(years) {
 			sessions = append(sessions, Session{y, years[i+1]})
 		} else {
-			sessions = append(sessions, Session{y, y + 1}) // could be 4 years 🤷‍♂️
+			sessions = append(sessions, Session{y, y + 1}) // TODO could be 4 years 🤷‍♂️
 		}
 	}
 	return sessions
 }
 
+// yearFromFile extracts path/$year/file.json => int($year)
 func yearFromFile(s string) int {
 	year, _ := strconv.Atoi(strings.SplitN(s, "/", 3)[1])
 	return year
 }
 
-// SyncResubmit detects legislation that's resubmitted based on the Name or Title
+// SyncResubmit detects legislation that's filed at the end of one session
+// and resubmitted in the next one based on the Name, Title or Summary
 func (s SyncApp) SyncResubmit() error {
 	resubmitFilename := func(n int) string {
 		return fmt.Sprintf("resubmit/%d.json", n)
@@ -101,6 +100,7 @@ func (s SyncApp) SyncResubmit() error {
 	resubmitName := make(map[string]string, len(s.legislationLookup))
 	resubmitTitle := make(map[string]string, len(s.legislationLookup))
 	resbumitSummary := make(map[string]string, len(s.legislationLookup))
+	changed := make(map[string]bool)
 
 	sessions := s.Sessions()
 	numberAdded := 0
@@ -109,9 +109,9 @@ func (s SyncApp) SyncResubmit() error {
 		if i == 0 {
 			continue
 		}
-		lastSession := sessions[i-1]
 
-		// build the lookups
+		// build the lookups from previous session
+		lastSession := sessions[i-1]
 		for fn := range s.legislationLookup {
 			if !lastSession.ContainsYear(yearFromFile(fn)) {
 				continue
@@ -134,6 +134,7 @@ func (s SyncApp) SyncResubmit() error {
 			}
 		}
 
+		// check everything in session against lookup
 		for fn := range s.legislationLookup {
 			year := yearFromFile(fn)
 			if !session.ContainsYear(year) {
@@ -147,6 +148,7 @@ func (s SyncApp) SyncResubmit() error {
 			if err != nil {
 				return err
 			}
+			// if the bill is withdrawn don't consider it for resubmission
 			switch l.StatusName {
 			case "Withdrawn":
 				continue
@@ -158,22 +160,26 @@ func (s SyncApp) SyncResubmit() error {
 			if old == "" && l.Summary != "" {
 				old = resbumitSummary[l.Summary]
 			}
-			if old != "" {
-				// log.Printf("resubmit %q => %q %s", old, l.File, resubmitFilename(l.IntroDate.Year()))
-				added := data[resubmitFilename(l.IntroDate.Year())].Add(db.ResubmitLegislation{
-					FromFile: old,
-					ToFile:   l.File,
-				})
-				if added {
-					numberAdded++
-				}
+			if old == "" {
+				continue
+			}
+			// log.Printf("resubmit %q => %q %s", old, l.File, resubmitFilename(l.IntroDate.Year()))
+			resubmitFn := resubmitFilename(l.IntroDate.Year())
+			added := data[resubmitFn].Add(db.ResubmitLegislation{
+				FromFile: old,
+				ToFile:   l.File,
+			})
+			if added {
+				changed[resubmitFn] = true
+				numberAdded++
 			}
 		}
 	}
 
 	log.Printf("detected %d new resubmissions", numberAdded)
 
-	for fn, f := range data {
+	for fn := range changed {
+		f := data[fn]
 		if len(f.Resubmitted) == 0 {
 			continue
 		}
