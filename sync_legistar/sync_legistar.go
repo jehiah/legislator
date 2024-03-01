@@ -109,6 +109,10 @@ func (s *SyncApp) Run() error {
 	if err != nil {
 		return err
 	}
+	err = s.SyncResubmit()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -227,35 +231,36 @@ func main() {
 			err = s.SyncEvent(ctx, id)
 		}
 	case *updateAll:
+		err = s.SyncResubmit()
 		// err = s.UpdateAllLegislation()
 		// err = s.SyncAllEvent()
 		// err = s.SyncDuplicateEvents()
 		// err = s.SyncRollCalls()
 
-		for year := 2024; year >= 2020; year-- {
-			// filter := legistar.AndFilters(
-			// 	MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
-			// 	MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
-			// )
-			// err = s.SyncLandUse(filter)
-			// if err != nil {
-			// 	break
-			// }
-			// err = s.SyncResolution(filter)
-			// if err != nil {
-			// 	break
-			// }
+		// for year := 2024; year >= 2020; year-- {
+		// 	// filter := legistar.AndFilters(
+		// 	// 	MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+		// 	// 	MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
+		// 	// )
+		// 	// err = s.SyncLandUse(filter)
+		// 	// if err != nil {
+		// 	// 	break
+		// 	// }
+		// 	// err = s.SyncResolution(filter)
+		// 	// if err != nil {
+		// 	// 	break
+		// 	// }
 
-			filter := legistar.AndFilters(
-				legistar.EventDateFilter{Time: time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "gt"},
-				legistar.EventDateFilter{Time: time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "lt"},
-			)
-			err = s.SyncEvents(filter)
-			if err != nil {
-				break
-			}
+		// 	filter := legistar.AndFilters(
+		// 		legistar.EventDateFilter{Time: time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "gt"},
+		// 		legistar.EventDateFilter{Time: time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "lt"},
+		// 	)
+		// 	err = s.SyncEvents(filter)
+		// 	if err != nil {
+		// 		break
+		// 	}
 
-		}
+		// }
 
 	case *updatePeople:
 		err = s.UpdateActive(ctx)

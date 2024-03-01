@@ -214,3 +214,8 @@ func NewVote(v legistar.Vote) Vote {
 		Sort:   v.Sort,
 	}
 }
+
+type ResubmitLegislation struct {
+	FromFile string
+	ToFile   string
+}
