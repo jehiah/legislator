@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jehiah/legislator/db"
@@ -24,7 +26,7 @@ type SyncApp struct {
 	personLookup      map[int]db.Person
 	legislationLookup map[string]bool
 	landUseLookup     map[string]bool
-	resolutionLookkup map[string]bool
+	resolutionLookup  map[string]bool
 	eventsLookup      map[int][]string
 
 	LastSync
@@ -38,6 +40,22 @@ type LastSync struct {
 	Resolution time.Time
 
 	LastRun time.Time
+}
+
+func Filename(m db.Legislation) string {
+	var prefix string
+	switch m.TypeName {
+	case "Introduction":
+		prefix = "introduction"
+	case "Resolution":
+		prefix = "resolution"
+	case "Land Use Application":
+		prefix = "land_use"
+	default:
+		panic(fmt.Sprintf("unknown legislation type for %q %q", m.TypeName, m.File))
+	}
+	fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
+	return filepath.Join(prefix, strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
 func (s *SyncApp) Load() error {
@@ -92,11 +110,10 @@ func (s *SyncApp) Run() error {
 	if err != nil {
 		return err
 	}
-	err = s.SyncLegislation()
+	err = s.SyncLegislation(nil)
 	if err != nil {
 		return err
 	}
-
 	err = s.SyncEvents(nil)
 	if err != nil {
 		return err
@@ -186,7 +203,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	targetDir := flag.String("target-dir", "", "Target Directory")
 	updatePeople := flag.Bool("update-people", false, "update all people")
-	updateLegislation := flag.String("update-legislation", "", "File of legislation to update i.e. 1234-2020")
+	updateMatter := flag.String("update-matter", "", "File of matter to update i.e. 1234-2020")
 	updateEvent := flag.String("update-event", "", "the ID of an event to update")
 	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
@@ -201,7 +218,7 @@ func main() {
 		personLookup:      make(map[int]db.Person),
 		legislationLookup: make(map[string]bool),
 		landUseLookup:     make(map[string]bool),
-		resolutionLookkup: make(map[string]bool),
+		resolutionLookup:  make(map[string]bool),
 		eventsLookup:      make(map[int][]string),
 		targetDir:         *targetDir,
 	}
@@ -218,8 +235,8 @@ func main() {
 		log.Fatal(err)
 	}
 	switch {
-	case *updateLegislation != "":
-		err = s.UpdateLegislationByFile(*updateLegislation)
+	case *updateMatter != "":
+		err = s.UpdateMatterByFile(*updateMatter)
 	case *updateEvent != "":
 		if *updateEvent == "current" {
 			err = s.SyncCurrentEvents()
@@ -231,36 +248,44 @@ func main() {
 			err = s.SyncEvent(ctx, id)
 		}
 	case *updateAll:
-		err = s.SyncResubmit()
+		// err = s.SyncResubmit()
 		// err = s.UpdateAllLegislation()
 		// err = s.SyncAllEvent()
 		// err = s.SyncDuplicateEvents()
 		// err = s.SyncRollCalls()
+		currentYear := time.Now().Year()
 
-		// for year := 2024; year >= 2020; year-- {
-		// 	// filter := legistar.AndFilters(
-		// 	// 	MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
-		// 	// 	MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
-		// 	// )
-		// 	// err = s.SyncLandUse(filter)
-		// 	// if err != nil {
-		// 	// 	break
-		// 	// }
-		// 	// err = s.SyncResolution(filter)
-		// 	// if err != nil {
-		// 	// 	break
-		// 	// }
+		var filter legistar.Filters
+		for year := 2026; year <= currentYear; year++ {
+			filter = legistar.AndFilters(
+				MatterDateYearFilter{time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+				MatterDateYearFilter{time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), "lt"},
+			)
 
-		// 	filter := legistar.AndFilters(
-		// 		legistar.EventDateFilter{Time: time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "gt"},
-		// 		legistar.EventDateFilter{Time: time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "lt"},
-		// 	)
-		// 	err = s.SyncEvents(filter)
-		// 	if err != nil {
-		// 		break
-		// 	}
+			err = s.SyncLegislation(filter)
+			if err != nil {
+				break
+			}
 
-		// }
+			err = s.SyncLandUse(filter)
+			if err != nil {
+				break
+			}
+			err = s.SyncResolution(filter)
+			if err != nil {
+				break
+			}
+
+			filter = legistar.AndFilters(
+				legistar.EventDateFilter{Time: time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "gt"},
+				legistar.EventDateFilter{Time: time.Date(year+1, time.January, 1, 0, 0, 0, 0, time.UTC), Direction: "lt"},
+			)
+			err = s.SyncEvents(filter)
+			if err != nil {
+				break
+			}
+
+		}
 
 	case *updatePeople:
 		err = s.UpdateActive(ctx)

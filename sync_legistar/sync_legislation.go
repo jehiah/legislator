@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/url"
 	"path/filepath"
@@ -29,14 +28,20 @@ func LegislationFilename(m db.Legislation) string {
 	return filepath.Join("introduction", strconv.Itoa(m.IntroDate.Year()), fn)
 }
 
-func (s *SyncApp) SyncLegislation() error {
+func (s *SyncApp) SyncLegislation(filter legistar.Filters) error {
 	ctx := context.Background()
-	filter := legistar.AndFilters(
-		legistar.MatterLastModifiedFilter(s.LastSync.Matters),
-		legistar.MatterTypeFilter("Introduction"),
-		MatterDateYearFilter{time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
-		// MatterDateYearFilter{time.Date(2014, time.June, 1, 0, 0, 0, 0, time.UTC), "lt"},
-	)
+	if filter == nil {
+		filter = legistar.AndFilters(
+			legistar.MatterLastModifiedFilter(s.LastSync.Matters),
+			legistar.MatterTypeFilter("Introduction"),
+			MatterDateYearFilter{time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
+		)
+	} else {
+		filter = legistar.AndFilters(
+			filter,
+			legistar.MatterTypeFilter("Introduction"),
+		)
+	}
 
 	matters, err := s.legistar.Matters(ctx, filter)
 	if err != nil {
@@ -66,25 +71,6 @@ func (s *SyncApp) SyncLegislation() error {
 		s.LastSync.Matters = db.Max(matters, func(i int) time.Time { return matters[i].LastModified.Time })
 	}
 	return nil
-}
-
-// UpdateMatterByFile expects format 1234-2020
-func (s *SyncApp) UpdateLegislationByFile(q string) error {
-	ctx := context.Background()
-	file := fmt.Sprintf("Int %s", q)
-	filter := legistar.AndFilters(
-		legistar.MatterTypeFilter("Introduction"),
-		legistar.MatterFileFilter(file),
-	)
-
-	matters, err := s.legistar.Matters(ctx, filter)
-	if err != nil {
-		return err
-	}
-	if len(matters) != 1 {
-		return fmt.Errorf("expected 1 response got %d for %q", len(matters), q)
-	}
-	return s.UpdateLegislation(ctx, matters[0].ID)
 }
 
 func (s *SyncApp) UpdateAllLegislation() error {

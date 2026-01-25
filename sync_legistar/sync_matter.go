@@ -2,10 +2,56 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/jehiah/legislator/db"
+	"github.com/jehiah/legislator/legistar"
 )
+
+// UpdateMatterByFile expects format 1234-2020
+func (s *SyncApp) UpdateMatterByFile(q string) error {
+	ctx := context.Background()
+	file := q
+
+	if !strings.Contains(q, " ") {
+		file = fmt.Sprintf("Int %s", q)
+	}
+	fileType, _, _ := strings.Cut(file, " ")
+	switch fileType {
+	case "Int":
+		fileType = "Introduction"
+	case "Res":
+		fileType = "Resolution"
+	case "LU":
+		fileType = "Land Use Application"
+	default:
+		return fmt.Errorf("unknown legislation type for %q", file)
+	}
+	filter := legistar.AndFilters(
+		legistar.MatterTypeFilter(fileType),
+		legistar.MatterFileFilter(file),
+	)
+
+	matters, err := s.legistar.Matters(ctx, filter)
+	if err != nil {
+		return err
+	}
+	if len(matters) != 1 {
+		return fmt.Errorf("expected 1 response got %d for %q", len(matters), q)
+	}
+	switch fileType {
+	case "Introduction":
+		return s.UpdateLegislation(ctx, matters[0].ID)
+	case "Resolution":
+		return s.UpdateResolution(ctx, matters[0].ID)
+	case "Land Use Application":
+		return s.UpdateLandUse(ctx, matters[0].ID)
+	default:
+		return fmt.Errorf("unknown legislation type for %q", file)
+	}
+}
 
 func (s *SyncApp) updateMatter(ctx context.Context, fn string, l db.Legislation) error {
 	sponsors, err := s.legistar.MatterSponsors(ctx, l.ID)

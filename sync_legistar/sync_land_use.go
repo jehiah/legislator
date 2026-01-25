@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -13,17 +12,13 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-func LandUseFilename(m db.Legislation) string {
-	fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
-	return filepath.Join("land_use", strconv.Itoa(m.IntroDate.Year()), fn)
-}
-
 func (s *SyncApp) SyncLandUse(filter legistar.Filters) error {
 	ctx := context.Background()
 	if filter == nil {
 		filter = legistar.AndFilters(
 			legistar.MatterLastModifiedFilter(s.LastSync.LandUse),
 			legistar.MatterTypeFilter("Land Use Application"),
+			MatterDateYearFilter{time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
 		)
 	} else {
 		filter = legistar.AndFilters(
@@ -43,7 +38,7 @@ func (s *SyncApp) SyncLandUse(filter legistar.Filters) error {
 			continue
 		}
 		l := db.NewLegislation(m)
-		fn := LandUseFilename(l)
+		fn := Filename(l)
 		s.legislationLookup[fn] = true
 		err = s.updateLandUse(ctx, l)
 		if err != nil {
@@ -147,7 +142,7 @@ func (s *SyncApp) UpdateLandUse(ctx context.Context, ID int) error {
 }
 
 func (s *SyncApp) updateLandUse(ctx context.Context, l db.Legislation) error {
-	fn := LandUseFilename(l)
+	fn := Filename(l)
 	return s.updateMatter(ctx, fn, l)
 }
 

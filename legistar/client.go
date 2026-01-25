@@ -186,10 +186,10 @@ func (c Client) Event(ctx context.Context, ID int) (Event, error) {
 }
 
 // EventItems
-// http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1
+// http://127.0.0.1:7001/Events/379233/EventItems?AgendaNote=1&MinutesNote=1&Attachments=0
 func (c Client) EventItems(ctx context.Context, ID int) (EventItems, error) {
 	var v EventItems
-	err := c.Call(ctx, fmt.Sprintf("/Events/%d/EventItems?AgendaNote=1&MinutesNote=1&Attachments=1", ID), nil, &v)
+	err := c.Call(ctx, fmt.Sprintf("/Events/%d/EventItems?AgendaNote=1&MinutesNote=1&Attachments=0", ID), nil, &v)
 	// TODO: sort
 	// sort.Slice(v, func(i, j int) bool {
 	// 	if v[i].ActionDate.Time.Equal(v[j].ActionDate.Time) {

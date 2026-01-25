@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strconv"
@@ -69,17 +70,19 @@ func (s *SyncApp) SyncRollCalls() error {
 
 func (s *SyncApp) SyncCurrentEvents() error {
 	ctx := context.Background()
-	for ID, v := range s.eventsLookup {
-		if len(v) == 1 && strings.HasPrefix(v[0], "events/2024/") {
-			// err := s.SyncEvent(ctx, ID)
-			// if err != nil {
-			// 	return err
-			// }
 
-			_, err := s.legistar.Event(ctx, ID)
-			if err != nil && legistar.IsNotFoundError(err) {
-				s.removeFile(v[0])
+	currentYearPrefix := fmt.Sprintf("events/%d/", time.Now().Year())
+	for ID, v := range s.eventsLookup {
+		if len(v) == 1 && strings.HasPrefix(v[0], currentYearPrefix) {
+			err := s.SyncEvent(ctx, ID)
+			if err != nil {
+				return err
 			}
+
+			// _, err := s.legistar.Event(ctx, ID)
+			// if err != nil && legistar.IsNotFoundError(err) {
+			// 	s.removeFile(v[0])
+			// }
 
 		}
 	}

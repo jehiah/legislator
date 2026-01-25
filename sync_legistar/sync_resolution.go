@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -13,17 +12,13 @@ import (
 	"github.com/jehiah/legislator/legistar"
 )
 
-func ResolutionFilename(m db.Legislation) string {
-	fn := strings.Fields(strings.ReplaceAll(m.File, "-", " "))[1] + ".json"
-	return filepath.Join("resolution", strconv.Itoa(m.IntroDate.Year()), fn)
-}
-
 func (s *SyncApp) SyncResolution(filter legistar.Filters) error {
 	ctx := context.Background()
 	if filter == nil {
 		filter = legistar.AndFilters(
 			legistar.MatterLastModifiedFilter(s.LastSync.Resolution),
 			legistar.MatterTypeFilter("Resolution"),
+			MatterDateYearFilter{time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC), "gt"},
 		)
 	} else {
 		filter = legistar.AndFilters(
@@ -43,7 +38,7 @@ func (s *SyncApp) SyncResolution(filter legistar.Filters) error {
 			continue
 		}
 		l := db.NewLegislation(m)
-		fn := ResolutionFilename(l)
+		fn := Filename(l)
 		s.legislationLookup[fn] = true
 		err = s.updateResolution(ctx, l)
 		if err != nil {
@@ -83,7 +78,7 @@ func (s *SyncApp) UpdateResolutionByFile(q string) error {
 
 func (s *SyncApp) UpdateAllResolution() error {
 	ctx := context.Background()
-	for fn := range s.resolutionLookkup {
+	for fn := range s.resolutionLookup {
 		var l *db.Legislation
 		err := s.readFile(fn, &l)
 		if err != nil {
@@ -147,7 +142,7 @@ func (s *SyncApp) UpdateResolution(ctx context.Context, ID int) error {
 }
 
 func (s *SyncApp) updateResolution(ctx context.Context, l db.Legislation) error {
-	fn := ResolutionFilename(l)
+	fn := Filename(l)
 	return s.updateMatter(ctx, fn, l)
 }
 
@@ -161,9 +156,9 @@ func (s *SyncApp) LoadResolution() error {
 			continue
 		}
 		fn = strings.TrimPrefix(fn, s.targetDir+"/")
-		s.resolutionLookkup[fn] = true
+		s.resolutionLookup[fn] = true
 	}
 
-	log.Printf("loaded %d resolution files", len(s.resolutionLookkup))
+	log.Printf("loaded %d resolution files", len(s.resolutionLookup))
 	return nil
 }
