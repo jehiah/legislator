@@ -1,6 +1,8 @@
 package db
 
 import (
+	"cmp"
+	"slices"
 	"strings"
 	"time"
 
@@ -114,6 +116,11 @@ func NewPerson(p legistar.Person, o legistar.OfficeRecords) Person {
 	for _, oo := range o {
 		v.OfficeRecords = append(v.OfficeRecords, NewOfficeRecord(oo))
 	}
+	// sort office records by ID
+	slices.SortFunc(v.OfficeRecords, func(a, b OfficeRecord) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
+
 	v.Start = Min(v.OfficeRecords, func(i int) time.Time { return v.OfficeRecords[i].Start })
 	v.End = Max(v.OfficeRecords, func(i int) time.Time { return v.OfficeRecords[i].End })
 	return v
