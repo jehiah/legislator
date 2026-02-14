@@ -81,9 +81,13 @@ func (s *SyncApp) updateMatter(ctx context.Context, fn string, l db.Legislation)
 		if hh.PassedFlagName != "" && hh.ActionID != 53 && hh.ActionID != 5014 && hh.ActionID != 5023 && hh.ActionID != 27 {
 			votes, err := s.legistar.EventVotes(ctx, hh.ID)
 			if err != nil {
-				if hh.PassedFlagName == "Failed" || hh.ID == 283777 {
+				switch {
+				case hh.PassedFlagName == "Failed" || hh.ID == 283777:
 					log.Printf("warning getting votes for eventID %v - PassedFlagName:Failed is a known bug on older records", hh.ID)
-				} else {
+				case hh.ID == 433502:
+					// https://bsky.app/profile/jehiah.cz/post/3meqwcebuc22v
+					log.Printf("warning getting votes for eventID %v - known bug ", hh.ID)
+				default:
 					return err
 				}
 			}
