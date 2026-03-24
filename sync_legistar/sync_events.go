@@ -78,12 +78,6 @@ func (s *SyncApp) SyncCurrentEvents() error {
 			if err != nil {
 				return err
 			}
-
-			// _, err := s.legistar.Event(ctx, ID)
-			// if err != nil && legistar.IsNotFoundError(err) {
-			// 	s.removeFile(v[0])
-			// }
-
 		}
 	}
 	return nil
@@ -103,13 +97,13 @@ func (s *SyncApp) SyncDuplicateEvents() error {
 }
 
 func (s *SyncApp) SyncAllEvent() error {
-	for year := 2004; year <= 2004; year++ {
+	for year := 2026; year <= 2026; year++ {
 		for month := time.January; month <= time.December; month++ {
 			start := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
 			end := start.AddDate(0, 1, 1)
 			filter := legistar.AndFilters(
-				legistar.EventDateFilter{"ge", start},
-				legistar.EventDateFilter{"lt", end},
+				legistar.EventDateFilter{Direction: "ge", Time: start},
+				legistar.EventDateFilter{Direction: "lt", Time: end},
 			)
 			err := s.SyncEvents(filter)
 			if err != nil {

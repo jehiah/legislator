@@ -238,9 +238,12 @@ func main() {
 	case *updateMatter != "":
 		err = s.UpdateMatterByFile(*updateMatter)
 	case *updateEvent != "":
-		if *updateEvent == "current" {
+		switch {
+		case *updateEvent == "current":
 			err = s.SyncCurrentEvents()
-		} else {
+		case *updateEvent == "resync":
+			err = s.SyncAllEvent()
+		default:
 			id, err := strconv.Atoi(*updateEvent)
 			if err != nil {
 				log.Fatal(err)
