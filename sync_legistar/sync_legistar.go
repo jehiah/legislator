@@ -99,6 +99,7 @@ func (s *SyncApp) Load() error {
 }
 
 func (s *SyncApp) Run() error {
+	log.Printf("last run was %#v", s.LastSync)
 	os.MkdirAll(s.targetDir, 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "people"), 0777)
 	os.MkdirAll(filepath.Join(s.targetDir, "introduction"), 0777)
@@ -205,6 +206,7 @@ func main() {
 	updatePeople := flag.Bool("update-people", false, "update all people")
 	updateMatter := flag.String("update-matter", "", "File of matter to update i.e. 1234-2020")
 	updateEvent := flag.String("update-event", "", "the ID of an event to update")
+	updatePerson := flag.Int("update-person", 0, "the ID of a person to update")
 	timezone := flag.String("tz", "America/New_York", "timezone")
 	updateAll := flag.Bool("update-all", false, "update all")
 	skipIndexUpdate := flag.Bool("skip-index-update", false, "skip updating year index files and last_sync.json")
@@ -292,6 +294,8 @@ func main() {
 
 	case *updatePeople:
 		err = s.UpdateActive(ctx)
+	case *updatePerson != 0:
+		err = s.UpdatePersonID(ctx, *updatePerson)
 	default:
 		err = s.Run()
 	}

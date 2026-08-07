@@ -33,7 +33,7 @@ func (s *SyncApp) SyncPersons() error {
 
 		// ensure slug is unique
 		if slugs[p.Slug()] {
-			log.Fatalf("slug %s is a duplciate %#v", p.Slug(), p)
+			log.Fatalf("slug %s is a duplicate %#v", p.Slug(), p)
 		}
 		slugs[p.Slug()] = true
 
